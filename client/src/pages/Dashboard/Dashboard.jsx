@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { boqGenerator } from "../../domain/boqGenerator";
 import { calculateCost } from "../../domain/costCalculation";
 import { estimateRooms } from "../../domain/roomEstimator";
+import { calculateProjectEstimate } from "../../store/slices/boqSlice";
 import InputForm from "../../components/inputForm";
 import CostChart from "../../components/costChart";
 import WorkspaceSidebar from "./sections/WorkspaceSidebar";
@@ -9,6 +10,15 @@ import MaterialRates from "./sections/MaterialRates";
 import OpeningSection from "./sections/OpeningSection";
 import OpeningBreakdown from "./sections/OpeningBreakdown";
 import BoqSection from "./sections/BoqSection";
+import SolarInputForm from "../../customServices/solarInputForm";
+import LiftInputForm from "../../customServices/liftInputForm";
+import PumpInputForm from "../../customServices/pumpInputForm";
+import RwhInputForm from "../../customServices/rwhInputForm";
+import SeptictankInputForm from "../../customServices/septiktankInputForm";
+import StructuralInputForm from "../../customServices/structuralInputForm";
+import EarthworkInputForm from "../../customServices/earthworkInputForm";
+import StaircaseInputForm from "../../customServices/staircaseInputForm";
+import FinishingInputForm from "../../customServices/finishingInputformat";
 import { useSelector, useDispatch } from "react-redux";
 import { updateRates } from "../../store/slices/rateSlice";
 import {
@@ -26,6 +36,15 @@ const Dashboard = () => {
   const [result, setResult] = useState(null);
   const [activeSection, setActiveSection] = useState("boq");
   const [mode, setMode] = useState("volume");
+  const solarState = useSelector((state) => state.solar);
+  const liftState = useSelector((state) => state.lift);
+  const pumpState = useSelector((state) => state.pump);
+  const rwhState = useSelector((state) => state.rwh);
+  const septiktankState = useSelector((state) => state.septiktank);
+  const structuralState = useSelector((state) => state.structural);
+  const earthworkState = useSelector((state) => state.earthwork);
+  const staircaseState = useSelector((state) => state.staircase);
+  const finishingState = useSelector((state) => state.finishing);
   const [formData, setFormData] = useState({
     grade: "M20",
     volume: "",
@@ -100,7 +119,6 @@ const Dashboard = () => {
     }
 
     const newProject = {
-      id: Date.now(),
       name: projectName || `Project ${Date.now()}`,
       formData,
       mode,
@@ -109,49 +127,46 @@ const Dashboard = () => {
       result,
       createdAt: new Date().toISOString(),
     };
-    console.log("SAVING PROJECT:", newProject);
-    dispatch(saveProjectAsync(newProject));
-    setProjectName("");
-    alert("Project Saved!");
+    console.log("SAVING PROJECT TO BACKEND:", newProject);
+    //.unwrap() to wait for the API response
+    dispatch(saveProjectAsync(newProject))
+      .unwrap()
+      .then(() => {
+        setProjectName("");
+        alert("Project Saved Successfully!");
+      })
+      .catch((err) => {
+        alert(`Failed to save project: ${err}`);
+      });
   };
 
-  // CALCULATE
-  const handleCalculate = ({ grade, volume, length, width, slabThickness }) => {
-    let finalVolume = Number(volume);
-
-    // Slab calculation
-    if (mode === "area") {
-      const L = Number(length);
-      const W = Number(width);
-      const slabT = Number(slabThickness);
-
-      if (L <= 0 || W <= 0 || slabT <= 0) {
-        setResult(null);
-        return;
-      }
-
-      finalVolume = L * W * slabT;
-    }
-
-    // Room wall calculation
-    finalVolume += roomData.totals.brickVolume;
-
-    const finalResult = boqGenerator(grade, finalVolume);
-
-    if (!finalResult) {
-      setResult(null);
-      return;
-    }
-    const cost = calculateCost(finalResult, rates);
-    console.log("FINAL RESULT:", finalResult);
-    console.log("COST:", cost);
-
-    setResult({
-      ...finalResult,
-      ...cost,
-      totalVolume: finalVolume,
-      plasterArea: roomData.totals.plasterArea,
-    });
+  //Calculation
+  const handleCalculate = (formValues) => {
+    const projectPayload = {
+      totalArea: Number(formValues.volume) || 0,
+      concreteGrade: formValues.grade,
+      slabVolume:
+        mode === "volume"
+          ? Number(formValues.volume)
+          : Number(formValues.length) *
+            Number(formValues.width) *
+            Number(formValues.slabThickness),
+      wallVolume: roomData?.totals?.brickVolume || 0,
+      foundationInput: formValues,
+      floors,
+      roomData,
+      rates,
+      solarInputs: solarState,
+      liftInputs: liftState,
+      pumpInputs: pumpState,
+      rwhInputs: rwhState,
+      septicUserCount: septiktankState?.septicUserCount || 5,
+      structuralInputs: structuralState,
+      foundationInput: earthworkState,
+      staircaseInput: staircaseState,
+      finishingInput: finishingState,
+    };
+    dispatch(calculateProjectEstimate(projectPayload));
   };
 
   // LOAD ACTIVE PROJECT
@@ -176,22 +191,21 @@ const Dashboard = () => {
   }, [activeProject, dispatch]);
 
   return (
-    <div className="flex gap-6 dark:text-white">
-      {/* Workspace Sidebar */}
-      <WorkspaceSidebar
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-      />
+    <div className="flex h-full w-full gap-6 dark:text-white p-6 overflow-hidden bg-gray-100 dark:bg-[#12141c]">
+      {/* WORKSPACE SIDEBAR */}
+      <div className="w-56 h-full flex-shrink-0">
+        <WorkspaceSidebar
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+      </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col gap-6">
-        {/* Top Section */}
-        <div
-          className={`w-full max-w-6xl grid gap-6 mb-4 ${
-            activeSection === "boq" ? "md:grid-cols-2" : "md:grid-cols-1"
-          }`}
-        >
-          <div className="flex flex-col gap-3">
+      {/* MAIN CONTENT AREA  */}
+      <div className="flex-1 h-full overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+          {/* Core Inputs & Save*/}
+          {/* Scrollable internally  */}
+          <div className="h-full overflow-y-auto flex flex-col gap-6 pr-2 pb-4">
             <InputForm
               onCalculate={handleCalculate}
               mode={mode}
@@ -200,117 +214,159 @@ const Dashboard = () => {
               setFormData={setFormData}
             />
 
-            {/* Openings */}
-            {activeSection === "openings" && (
-              <OpeningSection
-                floors={floors}
-                updateRoom={handleUpdateRoom}
-                removeRoom={handleRemoveRoom}
-                addRoom={handleAddRoom}
-                addFloor={handleAddFloor}
-                removeFloor={handleRemoveFloor}
-                updateFloorName={handleUpdateFloorName}
-              />
-            )}
-
-            {/* Material Rates */}
-            {activeSection === "rates" && (
-              <MaterialRates
-                rates={rates}
-                setRates={(updatedRates) => dispatch(updateRates(updatedRates))}
-              />
-            )}
-
-            {/* Save Project */}
-            <div
-              className="
-                bg-white
-                dark:bg-gray-800
-                p-3
-                rounded-xl
-                shadow
-                flex
-                gap-2
-              "
-            >
-              <input
-                type="text"
-                placeholder="Project Name"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                className="
-                  border
-                  p-2
-                  rounded
-                  flex-1
-                  bg-white
-                  dark:bg-gray-700
-                  dark:text-white
-                  dark:border-gray-600
-                "
-              />
-
-              <button
-                onClick={handleSaveProject}
-                disabled={loading}
-                className={`px-4 rounded text-white transition ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                {loading ? "Saving..." : "Save Project"}
-              </button>
-            </div>
-
+            {/* Error Message */}
             {error && (
-              <div
-                className="
-                  bg-red-100
-                  dark:bg-red-900
-                  text-red-700
-                  dark:text-red-200
-                  p-3
-                  rounded
-                "
-              >
+              <div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-3 rounded">
                 {error}
               </div>
             )}
+
+            {/* Save Project  */}
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow flex flex-col gap-3 mt-auto border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                Project Management
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Project Name"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="border p-2 rounded flex-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleSaveProject}
+                  disabled={loading}
+                  className={`px-4 py-2 rounded text-white transition font-medium ${
+                    loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  {loading ? "Saving..." : "Save Project"}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Chart */}
-          {activeSection === "boq" && result && (
-            <div
-              className="
-                bg-white
-                dark:bg-gray-800
-                rounded-xl
-                shadow
-                flex
-                items-center
-                justify-center
-                min-h-[320px]
-              "
-            >
-              <CostChart result={result} />
-            </div>
-          )}
-        </div>
+          {/* Contextual Forms filling the space */}
+          {/* Scrollable internally, dynamically shows content based on Workspace selection */}
+          <div className="h-full overflow-y-auto flex flex-col gap-6 pr-2 pb-4">
+            {/* BOQ Selection Active */}
+            {activeSection === "boq" && (
+              <>
+                {result ? (
+                  <>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex items-center justify-center min-h-[320px] p-4 border border-gray-200 dark:border-gray-700">
+                      <CostChart result={result} />
+                    </div>
+                    <BoqSection result={result} />
+                  </>
+                ) : (
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex items-center justify-center h-64 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500">
+                    Run calculations on the left to view chart and BOQ
+                  </div>
+                )}
+              </>
+            )}
 
-        {/* Bottom Section */}
-        <div
-          className={`w-full max-w-6xl grid gap-6 ${
-            activeSection === "boq" ? "md:grid-cols-2" : "md:grid-cols-1"
-          }`}
-        >
-          {/* BOQ */}
-          {activeSection === "boq" && result && <BoqSection result={result} />}
+            {/* Solar Module  */}
+            {activeSection === "solar" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <SolarInputForm />
+              </div>
+            )}
 
-          {/* Openings Breakdown */}
-          {activeSection === "breakdown" && (
-            <OpeningBreakdown roomData={roomData} />
-          )}
+            {/* Lift Module */}
+            {activeSection === "lift" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <LiftInputForm />
+              </div>
+            )}
+
+            {/* Pump MOdule */}
+            {activeSection === "pump" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <PumpInputForm />
+              </div>
+            )}
+
+            {/* Rain Water Harvesting MOdule */}
+            {activeSection === "rwh" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <RwhInputForm />
+              </div>
+            )}
+
+            {/*Septic Tank module */}
+            {activeSection === "septic" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <SeptictankInputForm />
+              </div>
+            )}
+
+            {/*Structural module */}
+            {activeSection === "structural" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <StructuralInputForm />
+              </div>
+            )}
+
+            {/*Earthwork module */}
+            {activeSection === "earthwork" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <EarthworkInputForm />
+              </div>
+            )}
+
+            {/*Staircase Module */}
+            {activeSection === "stair" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <StaircaseInputForm />
+              </div>
+            )}
+
+            {/* Finishing Module */}
+            {activeSection === "finishing" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <FinishingInputForm />
+              </div>
+            )}
+
+            {/* Openings Selection Active */}
+            {activeSection === "openings" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <OpeningSection
+                  floors={floors}
+                  updateRoom={handleUpdateRoom}
+                  removeRoom={handleRemoveRoom}
+                  addRoom={handleAddRoom}
+                  addFloor={handleAddFloor}
+                  removeFloor={handleRemoveFloor}
+                  updateFloorName={handleUpdateFloorName}
+                />
+              </div>
+            )}
+
+            {/* Breakdown Selection Active */}
+            {activeSection === "breakdown" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <OpeningBreakdown roomData={roomData} />
+              </div>
+            )}
+
+            {/* Rates Selection Active */}
+            {activeSection === "rates" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <MaterialRates
+                  rates={rates}
+                  setRates={(updatedRates) =>
+                    dispatch(updateRates(updatedRates))
+                  }
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

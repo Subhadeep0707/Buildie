@@ -1,45 +1,99 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import API from "../../api/axiosInstance";
 
-const API_URL = "http://localhost/Mywp/wp-json/jwt-auth/v1/token";
-
-// LOGIN THUNK
-export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async ({ username, password }, thunkAPI) => {
+//REGISTER USER
+export const registerUser = createAsyncThunk(
+  "auth/registerUser",
+  async ({ name, email, password }, thunkAPI) => {
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
+      const response = await API.post("/api/auth/register", {
+        name,
+        email,
+        password,
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        return thunkAPI.rejectWithValue(data.message || "Login failed");
-      }
-
-      // SAVE TOKEN
+      const data = response.data;
       localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: data.user_display_name,
-          email: data.user_email,
-        }),
-      );
-
+      localStorage.setItem("user", JSON.stringify(data));
       return data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      const message = error.response?.data?.message || "Registration failed";
+      return thunkAPI.rejectWithValue(message);
     }
   },
 );
 
+//LOGIN USER
+export const loginUser = createAsyncThunk(
+  "auth/loginUser",
+  async ({ email, password }, thunkAPI) => {
+    try {
+      const response = await API.post("/api/auth/login", {
+        email,
+        password,
+      });
+      const data = response.data;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data));
+      return data;
+    } catch (error) {
+      const message = error.response?.data?.message || "Login failed";
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+//UPDATE PROFILE (Customer)
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateUserProfile",
+  async (userData, thunkAPI) => {
+    try {
+      const response = await API.put("/api/auth/profile", userData);
+      const data = response.data;
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+      localStorage.setItem("user", JSON.stringify(data));
+      return data;
+    } catch (error) {
+      const message = error.response?.data?.message || "Profile update failed";
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+//UPDATE USER (Admin)
+export const updateUser = createAsyncThunk(
+  "auth/updateUser",
+  async ({ id, userData }, thunkAPI) => {
+    try {
+      // Dynamic ID parameter mapped to /:id
+      const response = await API.put(`/api/auth/${id}`, userData);
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || "User update failed";
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+//DELETE USER (Admin)
+export const deleteUser = createAsyncThunk(
+  "auth/deleteUser",
+  async (id, thunkAPI) => {
+    try {
+      // Dynamic ID parameter mapped to /:id
+      await API.delete(`/api/auth/${id}`);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return id;
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to delete user";
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+// Initial State
 const initialState = {
   token: localStorage.getItem("token") || null,
   user: localStorage.getItem("user")
@@ -49,6 +103,7 @@ const initialState = {
   error: null,
 };
 
+//Slices
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -60,28 +115,79 @@ const authSlice = createSlice({
       localStorage.removeItem("user");
     },
   },
-
   extraReducers: (builder) => {
     builder
-      // LOGIN PENDING
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-
-      // LOGIN SUCCESS
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-
-        state.user = {
-          name: action.payload.user_display_name,
-          email: action.payload.user_email,
-        };
+        state.user = action.payload;
       })
-
-      // LOGIN FAILED
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // REGISTER
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.token;
+        state.user = action.payload;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // UPDATE PROFILE (Customer)
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload.token) {
+          state.token = action.payload.token;
+        }
+        state.user = action.payload;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // UPDATE USER (Admin)
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        // Checking if the admin is updating their own profile and sync if necessary
+        if (state.user && state.user._id === action.payload._id) {
+          state.user = { ...state.user, ...action.payload };
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // DELETE USER
+      .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteUser.fulfilled, (state) => {
+        state.loading = false;
+        state.token = null;
+        state.user = null;
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -89,5 +195,4 @@ const authSlice = createSlice({
 });
 
 export const { logout } = authSlice.actions;
-
 export default authSlice.reducer;

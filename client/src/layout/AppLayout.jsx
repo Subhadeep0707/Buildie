@@ -1,18 +1,11 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import TopNavbar from "./Navbar"; 
 
 const AppLayout = () => {
   return (
-    <div
-      className=" flex
-  bg-gray-100
-  dark:bg-gray-900
-  min-h-screen
-  text-black
-  dark:text-white"
-    >
-      <Sidebar />
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col bg-gray-100 dark:bg-[#12141c] h-screen text-black dark:text-white overflow-hidden">
+      <TopNavbar />
+      <main className="flex-1 w-full flex overflow-hidden">
         <Outlet />
       </main>
     </div>

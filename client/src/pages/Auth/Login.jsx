@@ -7,7 +7,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const { token, loading, error, user } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
@@ -52,15 +52,15 @@ const Login = () => {
           {/* Username */}
           <div>
             <label className="block mb-2 text-sm font-medium dark:text-white">
-              Username
+             Email
             </label>
 
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              placeholder="Enter username"
+              placeholder="Enter email"
               className="
                 w-full
                 px-4
