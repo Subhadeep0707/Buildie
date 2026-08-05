@@ -13,7 +13,8 @@ import septiktankReducer from "./slices/septictankSlice";
 import structuralReducer from "./slices/structuralSlice";
 import earthworkreducer from "./slices/earthworkSlice";
 import staircasereducer from "./slices/staircaseSlice";
-import finishingreducer from "./slices/finishingSlice"
+import finishingreducer from "./slices/finishingSlice";
+import firefightingReducer from "./slices/firefightingslice";
 
 export const store = configureStore({
   reducer: {
@@ -24,13 +25,14 @@ export const store = configureStore({
     auth: authReducer,
     boq: boqReducer,
     solar: solarReducer,
-    lift:liftReducer,
-    pump:pumpReducer,
-    rwh:rwhReducer,
-    septiktank:septiktankReducer,
-    structural:structuralReducer,
-    earthwork:earthworkreducer,
-    staircase:staircasereducer,
-    finishing:finishingreducer,
+    lift: liftReducer,
+    pump: pumpReducer,
+    rwh: rwhReducer,
+    septiktank: septiktankReducer,
+    structural: structuralReducer,
+    earthwork: earthworkreducer,
+    staircase: staircasereducer,
+    finishing: finishingreducer,
+    firefighting: firefightingReducer,
   },
 });

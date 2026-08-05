@@ -18,7 +18,8 @@ import SeptictankInputForm from "../../customServices/septiktankInputForm";
 import StructuralInputForm from "../../customServices/structuralInputForm";
 import EarthworkInputForm from "../../customServices/earthworkInputForm";
 import StaircaseInputForm from "../../customServices/staircaseInputForm";
-import FinishingInputForm from "../../customServices/finishingInputformat";
+import FinishingInputForm from "../../customServices/finishingInputForm";
+import FirefightingForm from "../../customServices/firefightingInputForm";
 import { useSelector, useDispatch } from "react-redux";
 import { updateRates } from "../../store/slices/rateSlice";
 import {
@@ -45,6 +46,7 @@ const Dashboard = () => {
   const earthworkState = useSelector((state) => state.earthwork);
   const staircaseState = useSelector((state) => state.staircase);
   const finishingState = useSelector((state) => state.finishing);
+  const firefightingState = useSelector((state) => state.firefighting);
   const [formData, setFormData] = useState({
     grade: "M20",
     volume: "",
@@ -165,6 +167,7 @@ const Dashboard = () => {
       foundationInput: earthworkState,
       staircaseInput: staircaseState,
       finishingInput: finishingState,
+      firefighting: firefightingState,
     };
     dispatch(calculateProjectEstimate(projectPayload));
   };
@@ -330,6 +333,13 @@ const Dashboard = () => {
             {activeSection === "finishing" && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
                 <FinishingInputForm />
+              </div>
+            )}
+
+            {/* Firefighting Module */}
+            {activeSection === "firefighting" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <FirefightingForm />
               </div>
             )}
 

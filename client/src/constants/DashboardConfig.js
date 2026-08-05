@@ -12,6 +12,7 @@ export const DASHBOARD_SECTIONS = [
   { id: "earthwork", label: "Earthwork" },
   { id: "stair", label: "Staircase" },
   { id: "finishing", label: "Finishing" },
+  { id: "firefighting", label: "Firefighting" },
 
   {
     id: "openings",

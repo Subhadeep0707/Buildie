@@ -11,6 +11,7 @@ import { GLOBAL_RATES } from "../../config/globalRatesConfig.js";
 import { calculateLift } from "./liftCalc.js";
 import { calculatePumpSystem } from "./pumpCalc.js";
 import { calculateFinishing } from "./finishingConfig.js";
+import { calculateFirefighting } from "./firefightingCalc.js";
 
 // Helper function to recursively format all numbers to 2 decimal places
 const roundObjectValues = (obj, decimals = 2) => {
@@ -73,6 +74,7 @@ export const generateProjectEstimate = (projectData) => {
     liftInput,
     pumpInput,
     finishingInput,
+    firefightingInput,
   } = projectData;
 
   const breakdown = {
@@ -104,6 +106,13 @@ export const generateProjectEstimate = (projectData) => {
     finishingDetails:
       finishingInput || totalArea
         ? calculateFinishing(finishingInput, projectData)
+        : null,
+    firefightingSystem:
+      firefightingInput || totalArea
+        ? calculateFirefighting({
+            totalAreaSqM: totalArea,
+            ...(firefightingInput || {}),
+          })
         : null,
   };
 
@@ -188,10 +197,10 @@ export const generateProjectEstimate = (projectData) => {
   const earthworkCost = breakdown.earthwork?.totalExcavationCost || 0;
   const liftCost = breakdown.liftSystem?.liftSystemTotalCost || 0;
   const pumpCost = breakdown.pumpSystem?.costs?.totalSystemCost || 0;
-
-  // Extract finishing cost using the new key
   const finishingCost =
     breakdown.finishingDetails?.costs?.finishingSystemTotalCost || 0;
+  const firefightingCost =
+    breakdown.firefightingSystem?.totalEstimatedCost || 0;
 
   // Compute total project cost including all materials and module costs
   const calculatedTotalCost =
@@ -207,7 +216,8 @@ export const generateProjectEstimate = (projectData) => {
     earthworkCost +
     liftCost +
     pumpCost +
-    finishingCost;
+    finishingCost +
+    firefightingCost;
 
   // Construct the final comprehensive costs object
   const totalCosts = {
@@ -224,6 +234,7 @@ export const generateProjectEstimate = (projectData) => {
     liftCost,
     pumpCost,
     finishingCost,
+    firefightingCost,
     totalCost: calculatedTotalCost,
   };
 
