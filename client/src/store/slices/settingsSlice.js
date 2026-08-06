@@ -2,19 +2,11 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const savedSettings = JSON.parse(localStorage.getItem("settings"));
 
-const initialState = savedSettings || {
+const initialState = {
   currency: "INR",
   unitSystem: "metric",
   theme: "light",
-  region: "West Bengal",
-  defaultConcreteGrade: "M20",
-  rates: {
-    cementPerBag: 350,
-    steelPerKg: 58,
-    brickPerUnit: 10,
-    sandPerM3: 3000,
-    aggregatePerM3: 1000,
-  },
+  ...savedSettings,
 };
 
 const settingsSlice = createSlice({
@@ -36,24 +28,6 @@ const settingsSlice = createSlice({
       localStorage.setItem("settings", JSON.stringify(state));
     },
 
-    setRegion: (state, action) => {
-      state.region = action.payload;
-      localStorage.setItem("settings", JSON.stringify(state));
-    },
-
-    setDefaultConcreteGrade: (state, action) => {
-      state.defaultConcreteGrade = action.payload;
-      localStorage.setItem("settings", JSON.stringify(state));
-    },
-
-    updateRates: (state, action) => {
-      state.rates = {
-        ...state.rates,
-        ...action.payload,
-      };
-      localStorage.setItem("settings", JSON.stringify(state));
-    },
-
     resetSettings: () => {
       localStorage.removeItem("settings");
       return initialState;
@@ -61,14 +35,7 @@ const settingsSlice = createSlice({
   },
 });
 
-export const {
-  setCurrency,
-  setUnitSystem,
-  setTheme,
-  setRegion,
-  setDefaultConcreteGrade,
-  updateRates,
-  resetSettings,
-} = settingsSlice.actions;
+export const { setCurrency, setUnitSystem, setTheme, resetSettings } =
+  settingsSlice.actions;
 
 export default settingsSlice.reducer;
