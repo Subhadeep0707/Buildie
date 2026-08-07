@@ -3,38 +3,14 @@ import API from "../../api/axiosInstance";
 
 export const calculateProjectEstimate = createAsyncThunk(
   "boq/calculate",
-  async (projectData = {}, { getState, rejectWithValue }) => {
+  async (projectPayload, { rejectWithValue }) => {
     try {
-      //Access the entire Redux state
-      const state = getState();
-      //Extract solar state from solarSlice
-      const solarState = state.solar;
+      // Fire single POST request with the fully constructed payload from Dashboard.jsx
+      const response = await API.post("/api/estimates", projectPayload);
 
-      //Format solar input object expected by backend boqGenerator
-      const solarInput = {
-        systemCapacityKw: Number(solarState.systemCapacityKw) || undefined,
-        roofAreaSqM: Number(solarState.roofAreaSqM) || undefined,
-        costPerKwINR: Number(solarState.costPerKwINR) || 50000,
-      };
-       
-       //Format Lift input object expected by backend boqGenerator
-      const liftInput = {
-        capacityPassengers: Number(state.lift.capacityPassengers) || 6,
-        stops: Number(state.lift.stops) || 4,
-        standardKey: state.lift.standardKey || "IS_14665",
-        typeKey: state.lift.typeKey || "passengerMRL",
-      };
+      // Grab the data directly if the nested 'data' property doesn't exist
+      const finalResult = response.data?.data || response.data;
 
-      //Merge base project inputs with solarInput
-      const unifiedPayload = {
-        ...projectData,
-        solarInput,
-        liftInput,
-      };
-
-      //Fire single POST request with unified payload
-      const response = await API.post("/api/estimates", unifiedPayload);
-      const { data: finalResult } = response.data;
       return finalResult;
     } catch (error) {
       return rejectWithValue(

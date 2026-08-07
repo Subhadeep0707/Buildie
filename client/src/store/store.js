@@ -14,7 +14,9 @@ import structuralReducer from "./slices/structuralSlice";
 import earthworkreducer from "./slices/earthworkSlice";
 import staircasereducer from "./slices/staircaseSlice";
 import finishingreducer from "./slices/finishingSlice";
-import firefightingReducer from "./slices/firefightingslice";
+import firefightingReducer from "./slices/firefightingSlice";
+import plumbingReducer from "./slices/plumbingSlice";
+import electricityReducer from "./slices/electricitySlice";
 
 export const store = configureStore({
   reducer: {
@@ -34,5 +36,7 @@ export const store = configureStore({
     staircase: staircasereducer,
     finishing: finishingreducer,
     firefighting: firefightingReducer,
+    plumbing: plumbingReducer,
+    electricity: electricityReducer,
   },
 });

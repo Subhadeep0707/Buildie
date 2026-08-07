@@ -20,6 +20,8 @@ import EarthworkInputForm from "../../customServices/earthworkInputForm";
 import StaircaseInputForm from "../../customServices/staircaseInputForm";
 import FinishingInputForm from "../../customServices/finishingInputForm";
 import FirefightingForm from "../../customServices/firefightingInputForm";
+import PlumbingInputForm from "../../customServices/plumbingInputForm";
+import ElectricityInputForm from "../../customServices/electricityInputForm";
 import { useSelector, useDispatch } from "react-redux";
 import { updateRates } from "../../store/slices/rateSlice";
 import {
@@ -47,6 +49,8 @@ const Dashboard = () => {
   const staircaseState = useSelector((state) => state.staircase);
   const finishingState = useSelector((state) => state.finishing);
   const firefightingState = useSelector((state) => state.firefighting);
+  const plumbingState = useSelector((state) => state.plumbing);
+  const electricityState = useSelector((state) => state.electricity);
   const [formData, setFormData] = useState({
     grade: "M20",
     volume: "",
@@ -154,22 +158,30 @@ const Dashboard = () => {
             Number(formValues.width) *
             Number(formValues.slabThickness),
       wallVolume: roomData?.totals?.brickVolume || 0,
-      foundationInput: formValues,
       floors,
       roomData,
       rates,
-      solarInputs: solarState,
-      liftInputs: liftState,
-      pumpInputs: pumpState,
-      rwhInputs: rwhState,
+      foundationInput: earthworkState,
+      solarInput: solarState,
+      liftInput: liftState,
+      pumpInput: pumpState,
+      rwhInput: rwhState,
       septicUserCount: septiktankState?.septicUserCount || 5,
       structuralInputs: structuralState,
-      foundationInput: earthworkState,
       staircaseInput: staircaseState,
       finishingInput: finishingState,
-      firefighting: firefightingState,
+      firefightingInput: firefightingState,
+      plumbingInput: plumbingState,
+      electricityInput: electricityState,
     };
-    dispatch(calculateProjectEstimate(projectPayload));
+    dispatch(calculateProjectEstimate(projectPayload))
+      .unwrap()
+      .then((calculatedData) => {
+        setResult(calculatedData);
+      })
+      .catch((error) => {
+        console.error("Calculation failed:", error);
+      });
   };
 
   // LOAD ACTIVE PROJECT
@@ -340,6 +352,20 @@ const Dashboard = () => {
             {activeSection === "firefighting" && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
                 <FirefightingForm />
+              </div>
+            )}
+
+            {/* Plumbing module */}
+            {activeSection === "plumbing" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <PlumbingInputForm />
+              </div>
+            )}
+
+            {/* Electricity module */}
+            {activeSection === "electricity" && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                <ElectricityInputForm />
               </div>
             )}
 

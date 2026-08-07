@@ -12,6 +12,8 @@ import { calculateLift } from "./liftCalc.js";
 import { calculatePumpSystem } from "./pumpCalc.js";
 import { calculateFinishing } from "./finishingConfig.js";
 import { calculateFirefighting } from "./firefightingCalc.js";
+import { calculatePlumbing } from "./plumbingCalc.js";
+import { calculateElectricity } from "./electricityCalc.js";
 
 // Helper function to recursively format all numbers to 2 decimal places
 const roundObjectValues = (obj, decimals = 2) => {
@@ -24,7 +26,7 @@ const roundObjectValues = (obj, decimals = 2) => {
     if (typeof obj[key] === "number") {
       roundedObj[key] = Number(obj[key].toFixed(decimals));
     } else if (typeof obj[key] === "object") {
-      roundedObj[key] = roundObjectValues(obj[key], decimals); // for nested objects
+      roundedObj[key] = roundObjectValues(obj[key], decimals);
     } else {
       roundedObj[key] = obj[key];
     }
@@ -32,7 +34,6 @@ const roundObjectValues = (obj, decimals = 2) => {
   return roundedObj;
 };
 
-// Modular calculator for individual elements
 export const boqGenerator = (grade, volume, elementType = "slab") => {
   if (elementType === "structure") {
     const structuralLayout = estimateStructuralMembers(volume);
@@ -57,7 +58,6 @@ export const boqGenerator = (grade, volume, elementType = "slab") => {
   });
 };
 
-// Master function to handle full project payloads simultaneously
 export const generateProjectEstimate = (projectData) => {
   const {
     totalArea,
@@ -75,6 +75,8 @@ export const generateProjectEstimate = (projectData) => {
     pumpInput,
     finishingInput,
     firefightingInput,
+    plumbingInput,
+    electricityInput,
   } = projectData;
 
   const breakdown = {
@@ -112,6 +114,14 @@ export const generateProjectEstimate = (projectData) => {
         ? calculateFirefighting({
             totalAreaSqM: totalArea,
             ...(firefightingInput || {}),
+          })
+        : null,
+    plumbingSystem: plumbingInput ? calculatePlumbing(plumbingInput) : null,
+    electricalSystem:
+      electricityInput || totalArea
+        ? calculateElectricity({
+            totalAreaSqM: totalArea,
+            ...(electricityInput || {}),
           })
         : null,
   };
@@ -178,7 +188,6 @@ export const generateProjectEstimate = (projectData) => {
       breakdown.finishingDetails.materials.plasterSandVolumeM3 || 0;
   }
 
-  // Calculate material financial costs dynamically using GLOBAL_RATES
   const cementCost =
     grandTotals.cementBags * GLOBAL_RATES.materials.cementBagINR;
   const steelCost = grandTotals.steelKg * GLOBAL_RATES.materials.steelKgINR;
@@ -189,7 +198,6 @@ export const generateProjectEstimate = (projectData) => {
   const aggregateCost =
     grandTotals.aggregate * (GLOBAL_RATES.materials.aggregateUnitINR || 45);
 
-  // Extract individual module system/installation costs safely
   const solarCost = breakdown.solarRooftop?.solarSystemTotalCost || 0;
   const rwhCost = breakdown.rainwaterHarvesting?.rwhSystemTotalCost || 0;
   const septicTankCost = breakdown.septicTank?.septicTankTotalCost || 0;
@@ -201,8 +209,10 @@ export const generateProjectEstimate = (projectData) => {
     breakdown.finishingDetails?.costs?.finishingSystemTotalCost || 0;
   const firefightingCost =
     breakdown.firefightingSystem?.totalEstimatedCost || 0;
+  const plumbingCost = breakdown.plumbingSystem?.plumbingSystemTotalCost || 0;
+  const electricityCost =
+    breakdown.electricalSystem?.electricalSystemTotalCost || 0;
 
-  // Compute total project cost including all materials and module costs
   const calculatedTotalCost =
     cementCost +
     steelCost +
@@ -217,9 +227,10 @@ export const generateProjectEstimate = (projectData) => {
     liftCost +
     pumpCost +
     finishingCost +
-    firefightingCost;
+    firefightingCost +
+    plumbingCost +
+    electricityCost;
 
-  // Construct the final comprehensive costs object
   const totalCosts = {
     cementCost,
     steelCost,
@@ -235,10 +246,11 @@ export const generateProjectEstimate = (projectData) => {
     pumpCost,
     finishingCost,
     firefightingCost,
+    plumbingCost,
+    electricityCost,
     totalCost: calculatedTotalCost,
   };
 
-  // Wrap the entire final payload in the recursive rounder
   return roundObjectValues({
     breakdown,
     grandTotals,
