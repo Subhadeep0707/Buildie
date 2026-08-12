@@ -161,19 +161,28 @@ const Dashboard = () => {
       floors,
       roomData,
       rates,
+
+      // Core modules
       foundationInput: earthworkState,
-      solarInput: solarState,
-      liftInput: liftState,
-      pumpInput: pumpState,
-      rwhInput: rwhState,
-      septicUserCount: septiktankState?.septicUserCount || 5,
       structuralInputs: structuralState,
-      staircaseInput: staircaseState,
+      staircaseInput: staircaseState?.isIncluded ? staircaseState : null,
       finishingInput: finishingState,
-      firefightingInput: firefightingState,
-      plumbingInput: plumbingState,
-      electricityInput: electricityState,
+
+      // Optional MEP & Custom Services 
+      solarInput: solarState?.isIncluded ? solarState : null,
+      liftInput: liftState?.isIncluded ? liftState : null,
+      pumpInput: pumpState?.isIncluded ? pumpState : null,
+      rwhInput: rwhState?.isIncluded ? rwhState : null,
+      septicUserCount: septiktankState?.isIncluded
+        ? septiktankState.septicUserCount
+        : null,
+      firefightingInput: firefightingState?.isIncluded
+        ? firefightingState
+        : null,
+      plumbingInput: plumbingState?.isIncluded ? plumbingState : null,
+      electricityInput: electricityState?.isIncluded ? electricityState : null,
     };
+
     dispatch(calculateProjectEstimate(projectPayload))
       .unwrap()
       .then((calculatedData) => {

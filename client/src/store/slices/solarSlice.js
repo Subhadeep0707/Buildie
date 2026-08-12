@@ -1,15 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
+  isIncluded: false, 
   systemCapacityKw: "",
   roofAreaSqM: "",
-  costPerKwINR: 50000, // Standard default benchmark cost
+  costPerKwINR: 50000,
 };
 
 const solarSlice = createSlice({
   name: "solar",
   initialState,
   reducers: {
+    // Action to flip the switch ON/OFF
+    toggleSolarIncluded: (state, action) => {
+      state.isIncluded = action.payload;
+    },
     updateSolarInputs: (state, action) => {
       return { ...state, ...action.payload };
     },
@@ -17,5 +22,6 @@ const solarSlice = createSlice({
   },
 });
 
-export const { updateSolarInputs, resetSolarInputs } = solarSlice.actions;
+export const { toggleSolarIncluded, updateSolarInputs, resetSolarInputs } =
+  solarSlice.actions;
 export default solarSlice.reducer;

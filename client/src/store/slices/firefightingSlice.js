@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 const initialState = {
+  isIncluded: false, 
   inputs: {
     totalAreaSqM: 500,
     numberOfFloors: 4,
@@ -17,6 +19,10 @@ const firefightingSlice = createSlice({
   name: "firefighting",
   initialState,
   reducers: {
+    // Action to flip the switch ON/OFF
+    toggleFirefightingIncluded: (state, action) => {
+      state.isIncluded = action.payload;
+    },
     updateFirefightingInputs: (state, action) => {
       state.inputs = { ...state.inputs, ...action.payload };
     },
@@ -28,6 +34,7 @@ const firefightingSlice = createSlice({
 });
 
 export const {
+  toggleFirefightingIncluded,
   updateFirefightingInputs,
   setFirefightingResults,
   resetFirefighting,

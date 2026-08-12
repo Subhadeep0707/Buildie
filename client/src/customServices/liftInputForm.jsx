@@ -3,11 +3,13 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   updateLiftInputs,
   resetLiftInputs,
+  toggleLiftIncluded,
 } from "../store/slices/liftSlice";
 
 const LiftInputForm = () => {
   const dispatch = useDispatch();
   const liftData = useSelector((state) => state.lift);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     dispatch(
@@ -20,10 +22,25 @@ const LiftInputForm = () => {
     );
   };
 
+  const handleToggle = (e) => {
+    dispatch(toggleLiftIncluded(e.target.checked));
+  };
+
   return (
     <div className="bg-slate-800 p-4 rounded-lg text-white">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Lift System Configuration</h3>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold">Lift System Configuration</h3>
+          <label className="flex items-center space-x-2 text-sm font-medium text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={liftData.isIncluded || false}
+              onChange={handleToggle}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <span>Include Lift</span>
+          </label>
+        </div>
         <button
           type="button"
           onClick={() => dispatch(resetLiftInputs())}
@@ -43,7 +60,8 @@ const LiftInputForm = () => {
             name="capacityPassengers"
             value={liftData.capacityPassengers}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!liftData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             min="1"
           />
         </div>
@@ -57,7 +75,8 @@ const LiftInputForm = () => {
             name="stops"
             value={liftData.stops}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!liftData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             min="1"
           />
         </div>
@@ -70,7 +89,8 @@ const LiftInputForm = () => {
             name="standardKey"
             value={liftData.standardKey}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!liftData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="IS_14665">IS 14665 (Indian Standard)</option>
           </select>
@@ -82,7 +102,8 @@ const LiftInputForm = () => {
             name="typeKey"
             value={liftData.typeKey}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!liftData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="passengerMRL">Passenger MRL</option>
             <option value="goodsElevator">Goods Elevator</option>

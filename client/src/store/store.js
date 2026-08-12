@@ -30,7 +30,7 @@ export const store = configureStore({
     lift: liftReducer,
     pump: pumpReducer,
     rwh: rwhReducer,
-    septiktank: septiktankReducer,
+    septictank: septiktankReducer,
     structural: structuralReducer,
     earthwork: earthworkreducer,
     staircase: staircasereducer,

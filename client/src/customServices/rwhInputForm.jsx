@@ -1,6 +1,10 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateRwhInputs, resetRwhInputs } from "../store/slices/rwhSlice";
+import {
+  updateRwhInputs,
+  resetRwhInputs,
+  toggleRwhIncluded,
+} from "../store/slices/rwhSlice";
 
 const RwhInputForm = () => {
   const dispatch = useDispatch();
@@ -22,12 +26,27 @@ const RwhInputForm = () => {
     );
   };
 
+  const handleToggle = (e) => {
+    dispatch(toggleRwhIncluded(e.target.checked));
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center border-b pb-2 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-          Rainwater Harvesting Inputs
-        </h3>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b pb-2 dark:border-gray-700 gap-2">
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+            Rainwater Harvesting Inputs
+          </h3>
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rwhData.isIncluded || false}
+              onChange={handleToggle}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <span>Include RWH</span>
+          </label>
+        </div>
         <button
           type="button"
           onClick={() => dispatch(resetRwhInputs())}
@@ -48,7 +67,8 @@ const RwhInputForm = () => {
             placeholder="Inferred from total area if blank"
             value={rwhData.roofAreaSqM ?? ""}
             onChange={handleChange}
-            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={!rwhData.isIncluded}
+            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -61,7 +81,8 @@ const RwhInputForm = () => {
             name="annualRainfallMm"
             value={rwhData.annualRainfallMm ?? 1000}
             onChange={handleChange}
-            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={!rwhData.isIncluded}
+            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -73,7 +94,8 @@ const RwhInputForm = () => {
             name="runoffCoefficient"
             value={rwhData.runoffCoefficient ?? 0.85}
             onChange={handleChange}
-            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={!rwhData.isIncluded}
+            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value={0.85}>Concrete / Tiled Roof (0.85)</option>
             <option value={0.9}>Metal Sheeting (0.90)</option>
@@ -89,7 +111,8 @@ const RwhInputForm = () => {
             name="filterType"
             value={rwhData.filterType ?? "mesh"}
             onChange={handleChange}
-            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={!rwhData.isIncluded}
+            className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="mesh">Stainless Steel Mesh Filter</option>
             <option value="sand">First-Flush Sand Filter</option>

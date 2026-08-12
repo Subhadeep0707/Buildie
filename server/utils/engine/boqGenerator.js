@@ -92,38 +92,44 @@ export const generateProjectEstimate = (projectData) => {
     earthwork: foundationInput ? calculateEarthwork(foundationInput) : null,
     septicTank: septicUserCount ? calculateSepticTank(septicUserCount) : null,
     staircase: staircaseInput ? calculateStaircase(staircaseInput) : null,
-    rainwaterHarvesting:
-      rwhInput || totalArea
-        ? calculateRainwaterHarvesting({ ...(rwhInput || {}), totalArea })
-        : null,
-    solarRooftop:
-      solarInput || totalArea
-        ? calculateSolarRooftop({
-            ...(solarInput || {}),
-            roofAreaSqM: totalArea ? totalArea * 0.4 : 0,
-          })
-        : null,
+
+ 
+    // checking for the input object, If it is null, it skips calculation entirely.
+
+    rainwaterHarvesting: rwhInput
+      ? calculateRainwaterHarvesting({ ...rwhInput, totalArea })
+      : null,
+
+    solarRooftop: solarInput
+      ? calculateSolarRooftop({
+          ...solarInput,
+          roofAreaSqM: totalArea ? totalArea * 0.4 : 0,
+        })
+      : null,
+
     liftSystem: liftInput ? calculateLift(liftInput) : null,
-    pumpSystem: calculatePumpSystem(pumpInput || {}, projectData),
-    finishingDetails:
-      finishingInput || totalArea
-        ? calculateFinishing(finishingInput, projectData)
-        : null,
-    firefightingSystem:
-      firefightingInput || totalArea
-        ? calculateFirefighting({
-            totalAreaSqM: totalArea,
-            ...(firefightingInput || {}),
-          })
-        : null,
+
+    pumpSystem: pumpInput ? calculatePumpSystem(pumpInput, projectData) : null,
+
+    finishingDetails: finishingInput
+      ? calculateFinishing(finishingInput, projectData)
+      : null,
+
+    firefightingSystem: firefightingInput
+      ? calculateFirefighting({
+          totalAreaSqM: totalArea,
+          ...firefightingInput,
+        })
+      : null,
+
     plumbingSystem: plumbingInput ? calculatePlumbing(plumbingInput) : null,
-    electricalSystem:
-      electricityInput || totalArea
-        ? calculateElectricity({
-            totalAreaSqM: totalArea,
-            ...(electricityInput || {}),
-          })
-        : null,
+
+    electricalSystem: electricityInput
+      ? calculateElectricity({
+          totalAreaSqM: totalArea,
+          ...electricityInput,
+        })
+      : null,
   };
 
   const grandTotals = {

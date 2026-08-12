@@ -1,6 +1,5 @@
 import { generateProjectEstimate } from "../utils/engine/boqGenerator.js";
 
-// Helper function to format numbers to 2 decimal places
 const roundObjectValues = (obj, decimals = 2) => {
   const roundedObj = {};
   for (const key in obj) {
@@ -15,7 +14,6 @@ const roundObjectValues = (obj, decimals = 2) => {
 
 const createEstimate = (req, res) => {
   try {
-    // Extract the full project payload from the request body
     const {
       totalArea,
       concreteGrade,
@@ -25,7 +23,6 @@ const createEstimate = (req, res) => {
       beamVolume,
     } = req.body;
 
-    // Base validation: Ensure at least one calculation parameter is provided
     if (
       !totalArea &&
       !slabVolume &&
@@ -40,8 +37,6 @@ const createEstimate = (req, res) => {
       });
     }
 
-    // Engine Execution
-    // Passing the entire body to the engine, which handles the breakdown and aggregation internally
     const estimateData = generateProjectEstimate(req.body);
 
     if (!estimateData) {
@@ -50,17 +45,16 @@ const createEstimate = (req, res) => {
         message: "Invalid parameters for calculation.",
       });
     }
-    // Formatting cleanup for grandTotals
+
     const cleanGrandTotals = roundObjectValues(estimateData.grandTotals);
 
-    // We pass the engine's totalCosts directly, ensuring modules like Solar/RWH aren't dropped
     res.json({
       success: true,
       message: "Project estimate generated successfully",
       data: {
         breakdown: estimateData.breakdown,
         grandTotals: cleanGrandTotals,
-        totalCosts: estimateData.totalCosts, // Passing the engine's exact cost output
+        totalCosts: estimateData.totalCosts,
       },
     });
   } catch (error) {

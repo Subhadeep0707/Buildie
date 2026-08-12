@@ -1,6 +1,10 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updatePumpInputs, resetPumpInputs } from "../store/slices/pumpSlice";
+import {
+  updatePumpInputs,
+  resetPumpInputs,
+  togglePumpIncluded,
+} from "../store/slices/pumpSlice";
 
 const PumpInputForm = () => {
   const dispatch = useDispatch();
@@ -23,10 +27,25 @@ const PumpInputForm = () => {
     );
   };
 
+  const handleToggle = (e) => {
+    dispatch(togglePumpIncluded(e.target.checked));
+  };
+
   return (
     <div className="bg-slate-800 p-4 rounded-lg text-white">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Pump System Configuration</h3>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold">Pump System Configuration</h3>
+          <label className="flex items-center space-x-2 text-sm font-medium text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={pumpData.isIncluded || false}
+              onChange={handleToggle}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <span>Include Pump</span>
+          </label>
+        </div>
         <button
           type="button"
           onClick={() => dispatch(resetPumpInputs())}
@@ -45,7 +64,8 @@ const PumpInputForm = () => {
             name="standardKey"
             value={pumpData.standardKey || "IS_9079"}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!pumpData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="IS_9079">IS 9079 (Indian Standard)</option>
           </select>
@@ -57,7 +77,8 @@ const PumpInputForm = () => {
             name="typeKey"
             value={pumpData.typeKey || "residentialTransfer"}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!pumpData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="residentialTransfer">
               Residential Water Transfer
@@ -77,7 +98,8 @@ const PumpInputForm = () => {
             name="pumpRunningHours"
             value={pumpData.pumpRunningHours || 2}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!pumpData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             min="0.5"
             step="0.5"
           />
@@ -93,7 +115,8 @@ const PumpInputForm = () => {
             placeholder="Auto-calculated from floors"
             value={pumpData.explicitHeadMeters || ""}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!pumpData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -107,7 +130,8 @@ const PumpInputForm = () => {
             placeholder="Auto-calculated from users"
             value={pumpData.explicitDemandLiters || ""}
             onChange={handleChange}
-            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none"
+            disabled={!pumpData.isIncluded}
+            className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       </div>

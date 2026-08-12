@@ -1,10 +1,14 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateFirefightingInputs } from "../store/slices/firefightingSlice";
+import {
+  updateFirefightingInputs,
+  toggleFirefightingIncluded,
+} from "../store/slices/firefightingSlice";
 
 const FirefightingForm = () => {
   const dispatch = useDispatch();
-  const { inputs } = useSelector(
+  // Grab both inputs and the new isIncluded flag
+  const { inputs, isIncluded } = useSelector(
     (state) => state.firefighting || { inputs: {} },
   );
 
@@ -22,14 +26,29 @@ const FirefightingForm = () => {
     );
   };
 
+  const handleToggle = (e) => {
+    dispatch(toggleFirefightingIncluded(e.target.checked));
+  };
+
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-2xl">🔥</span>
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-          Firefighting & Life Safety System
-        </h3>
+      {/* Header & Simple Checkbox */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🔥</span>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+            Firefighting & Life Safety System
+          </h3>
+        </div>
+        <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isIncluded || false}
+            onChange={handleToggle}
+            className="w-4 h-4 cursor-pointer"
+          />
+          <span>Include Firefighting</span>
+        </label>
       </div>
 
       {/* Inputs Grid */}
@@ -44,7 +63,8 @@ const FirefightingForm = () => {
             value={inputs.totalAreaSqM || ""}
             onChange={handleChange}
             placeholder="e.g. 500"
-            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -58,7 +78,8 @@ const FirefightingForm = () => {
             value={inputs.numberOfFloors || ""}
             onChange={handleChange}
             placeholder="e.g. 4"
-            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -72,7 +93,8 @@ const FirefightingForm = () => {
             value={inputs.buildingHeightMeters || ""}
             onChange={handleChange}
             placeholder="e.g. 12"
-            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -84,7 +106,8 @@ const FirefightingForm = () => {
             name="hazardLevel"
             value={inputs.hazardLevel || "LIGHT_HAZARD"}
             onChange={handleChange}
-            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="LIGHT_HAZARD">
               Light Hazard (Residential / Offices)
@@ -98,35 +121,41 @@ const FirefightingForm = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 mt-6">
+        <div
+          className={`flex items-center gap-2 mt-6 ${!isIncluded ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           <input
             type="checkbox"
             id="includeSprinklers"
             name="includeSprinklers"
             checked={inputs.includeSprinklers ?? true}
             onChange={handleChange}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 disabled:cursor-not-allowed"
           />
           <label
             htmlFor="includeSprinklers"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+            className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${isIncluded ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             Include Automatic Sprinklers
           </label>
         </div>
 
-        <div className="flex items-center gap-2 mt-6">
+        <div
+          className={`flex items-center gap-2 mt-6 ${!isIncluded ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
           <input
             type="checkbox"
             id="includeHydrants"
             name="includeHydrants"
             checked={inputs.includeHydrants ?? true}
             onChange={handleChange}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            disabled={!isIncluded}
+            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 disabled:cursor-not-allowed"
           />
           <label
             htmlFor="includeHydrants"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+            className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${isIncluded ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             Include Wet Risers & Hydrants
           </label>
