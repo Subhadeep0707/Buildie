@@ -1,2 +1,2 @@
 # Buildie
-Contsruction Estim,ation Tool with MERN Tools 
+Contsruction Estimation SaaS with MERN TechStack 
