@@ -17,12 +17,14 @@ import finishingreducer from "./slices/finishingSlice";
 import firefightingReducer from "./slices/firefightingSlice";
 import plumbingReducer from "./slices/plumbingSlice";
 import electricityReducer from "./slices/electricitySlice";
+import blogReducer from "./slices/blogSlice";
 
 export const store = configureStore({
   reducer: {
     rooms: roomReducer,
     rates: rateReducer,
     projects: projectReducer,
+    blogs: blogReducer,
     settings: settingsReducer,
     auth: authReducer,
     boq: boqReducer,

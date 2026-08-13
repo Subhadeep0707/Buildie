@@ -1,40 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBlogsAsync } from "../../store/slices/blogSlice";
 
 const Blog = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { posts, loading, error } = useSelector((state) => state.blogs);
 
   useEffect(() => {
-    fetch("http://localhost/Mywp/wp-json/wp/v2/posts")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch posts");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setPosts(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    dispatch(fetchBlogsAsync());
+  }, [dispatch]);
 
-  // Loading State
   if (loading) {
     return (
       <div className="p-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow dark:text-white">
-          Loading posts...
+          Aggregating live construction insights...
         </div>
       </div>
     );
   }
 
-  // Error State
   if (error) {
     return (
       <div className="p-6">
@@ -46,72 +31,51 @@ const Blog = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Heading */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-4xl font-bold dark:text-white">Buildie Blog</h1>
-
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {posts.length} Posts
+    <div className="p-6 space-y-6 h-full flex flex-col overflow-hidden">
+      {/* Heading (Stays fixed at the top) */}
+      <div className="flex items-baseline justify-between flex-shrink-0">
+        <h1 className="text-4xl font-bold dark:text-white">ConTech Insights</h1>
+        <span className="text-xs font-semibold px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full">
+          {posts.length} Live Articles
         </span>
       </div>
 
-      {/* Posts */}
-      <div className="grid gap-6">
+      {/* Scrollable Feed Container */}
+      <div className="grid gap-6 overflow-y-auto flex-1 pr-2 pb-6">
         {posts.map((post) => (
           <div
             key={post.id}
-            className="
-              bg-white
-              dark:bg-gray-800
-              border
-              border-gray-200
-              dark:border-gray-700
-              p-6
-              rounded-xl
-              shadow
-              transition
-              hover:shadow-lg
-            "
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 rounded-xl shadow transition hover:shadow-lg flex flex-col justify-between"
           >
-            {/* Title */}
-            <h2 className="text-2xl font-semibold mb-3 dark:text-white">
-              {post.title?.rendered || "Untitled"}
-            </h2>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded">
+                  {post.source}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {new Date(post.date).toLocaleDateString()}
+                </span>
+              </div>
 
-            {/* Date */}
-            {/* Meta Info */}
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Published on {new Date(post.date).toLocaleDateString()} by Admin
-            </p>
+              <h2 className="text-2xl font-semibold mb-3 dark:text-white">
+                {post.title}
+              </h2>
 
-            {/* Content */}
-            <div
-              className="
-                text-gray-700
-                dark:text-gray-300
-                leading-relaxed
-              "
-              dangerouslySetInnerHTML={{
-                __html: post.content?.rendered || "No content available",
-              }}
-            />
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                {post.content}
+              </p>
+            </div>
 
-            {/* Read More */}
-            <a
-              href={post.link}
-              target="_blank"
-              rel="noreferrer"
-              className="
-                inline-block
-                mt-5
-                text-blue-600
-                hover:text-blue-700
-                font-medium
-              "
-            >
-              Read More →
-            </a>
+            <div>
+              <a
+                href={post.link}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Read Full Article →
+              </a>
+            </div>
           </div>
         ))}
       </div>

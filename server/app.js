@@ -7,6 +7,7 @@ import estimateRouter from "./routes/estimateRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import materialrouter from "./routes/materialRoutes.js";
 import authRouter from "./routes/authRoutes.js";
+import blogRouter from "./routes/blogRoutes.js";
 
 const app = express();
 
@@ -22,19 +23,18 @@ app.use(
 //Built-in Express middleware
 app.use(express.json());
 
-
 //Custom middleware and Routes
 app.use(logger);
 app.use("/api/projects", projectRouter);
 app.use("/api/health", router);
 app.use("/api/estimates", estimateRouter);
 app.use("/api/materials", materialrouter);
+app.use("/api/blogs", blogRouter);
 
 //Authentication Middleware
-app.use("/api/auth",authRouter)
+app.use("/api/auth", authRouter);
 
 //Global Errorhandler middleware
 app.use(errorHandler);
-
 
 export default app;

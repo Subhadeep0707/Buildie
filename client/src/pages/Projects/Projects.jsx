@@ -15,7 +15,9 @@ const Projects = () => {
   useEffect(() => {
     dispatch(fetchProjectsAsync());
   }, [dispatch]);
+
   const projects = useSelector((state) => state.projects.projects);
+
   const handleDelete = (id) => {
     dispatch(deleteProject(id));
   };
@@ -27,12 +29,12 @@ const Projects = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Heading */}
-      <div className="flex items-center justify-between">
+      {/* Heading & Count aligned cleanly using items-baseline */}
+      <div className="flex items-baseline justify-between">
         <h1 className="text-4xl font-bold dark:text-white">Saved Projects</h1>
 
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {projects.length} Projects
+        <span className="text-xs font-semibold px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full">
+          {projects.length} {projects.length === 1 ? "Project" : "Projects"}
         </span>
       </div>
 
@@ -42,14 +44,19 @@ const Projects = () => {
           className="
             bg-white
             dark:bg-gray-800
-            p-6
+            p-8
             rounded-xl
             shadow
             text-gray-500
             dark:text-gray-400
+            border
+            border-gray-200
+            dark:border-gray-700
+            text-center
           "
         >
-          No saved projects yet.
+          No saved projects yet. Start by building and saving a project from
+          your dashboard!
         </div>
       )}
 
@@ -89,7 +96,7 @@ const Projects = () => {
               </p>
 
               <p className="text-sm dark:text-gray-300">
-               Total Cost: ₹{project.result?.totalCost?.toFixed(2) || "0.00"}
+                Total Cost: ₹{project.result?.totalCost?.toFixed(2) || "0.00"}
               </p>
             </div>
 
