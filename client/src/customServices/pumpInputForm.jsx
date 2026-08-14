@@ -5,13 +5,23 @@ import {
   resetPumpInputs,
   togglePumpIncluded,
 } from "../store/slices/pumpSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const PumpInputForm = () => {
   const dispatch = useDispatch();
   const pumpData = useSelector((state) => state.pump) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updatePumpInputs({
         [name]:
@@ -49,7 +59,7 @@ const PumpInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetPumpInputs())}
-          className="text-xs text-red-400 hover:underline"
+          className="text-xs text-red-400 hover:underline cursor-pointer"
         >
           Reset Form
         </button>
@@ -95,22 +105,26 @@ const PumpInputForm = () => {
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="pumpRunningHours"
             value={pumpData.pumpRunningHours || 2}
             onChange={handleChange}
             disabled={!pumpData.isIncluded}
             className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            min="0.5"
             step="0.5"
           />
         </div>
 
         <div>
           <label className="block mb-1 text-slate-300">
-            Head Distance in Meters (Optional - Inferred if Blank)
+            Head Distance in {units.length === "ft" ? "Feet" : "Meters"} (
+            {units.length}) (Optional - Inferred if Blank)
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="explicitHeadMeters"
             placeholder="Auto-calculated from floors"
             value={pumpData.explicitHeadMeters || ""}
@@ -126,6 +140,8 @@ const PumpInputForm = () => {
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="explicitDemandLiters"
             placeholder="Auto-calculated from users"
             value={pumpData.explicitDemandLiters || ""}

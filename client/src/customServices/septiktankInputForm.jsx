@@ -5,14 +5,23 @@ import {
   resetSepticInputs,
   toggleSepticIncluded,
 } from "../store/slices/septictankSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const SeptictankInputForm = () => {
   const dispatch = useDispatch();
-  // Defensive fallback object
   const septicData = useSelector((state) => state.septictank) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateSepticInputs({
         [name]: value === "" ? "" : Number(value),
@@ -44,7 +53,7 @@ const SeptictankInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetSepticInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -53,15 +62,16 @@ const SeptictankInputForm = () => {
       <div className="space-y-3 text-sm">
         <div>
           <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
-            Number of Occupants / Users
+            Number of Occupants / Users (Length scale reference: {units.length})
           </label>
           <input
             type="number"
+            min="1"
+            onKeyDown={blockInvalidChars}
             name="septicUserCount"
             value={septicData.septicUserCount ?? 5}
             onChange={handleChange}
             disabled={!septicData.isIncluded}
-            min="1"
             className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

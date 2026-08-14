@@ -5,18 +5,30 @@ import {
   resetLiftInputs,
   toggleLiftIncluded,
 } from "../store/slices/liftSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const LiftInputForm = () => {
   const dispatch = useDispatch();
   const liftData = useSelector((state) => state.lift);
+  const { units } = useProjectSettings(); 
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateLiftInputs({
         [name]:
           name === "capacityPassengers" || name === "stops"
-            ? Number(value)
+            ? value === ""
+              ? ""
+              : Number(value)
             : value,
       }),
     );
@@ -44,7 +56,7 @@ const LiftInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetLiftInputs())}
-          className="text-xs text-red-400 hover:underline"
+          className="text-xs text-red-400 hover:underline cursor-pointer"
         >
           Reset Form
         </button>
@@ -57,27 +69,29 @@ const LiftInputForm = () => {
           </label>
           <input
             type="number"
+            min="1"
+            onKeyDown={blockInvalidChars}
             name="capacityPassengers"
             value={liftData.capacityPassengers}
             onChange={handleChange}
             disabled={!liftData.isIncluded}
             className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            min="1"
           />
         </div>
 
         <div>
           <label className="block mb-1 text-slate-300">
-            Number of Stops / Floors
+            Number of Stops / Floors ({units.length} reference)
           </label>
           <input
             type="number"
+            min="1"
+            onKeyDown={blockInvalidChars}
             name="stops"
             value={liftData.stops}
             onChange={handleChange}
             disabled={!liftData.isIncluded}
             className="w-full p-2 bg-slate-700 rounded border border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            min="1"
           />
         </div>
 

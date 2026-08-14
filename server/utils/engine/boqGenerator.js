@@ -14,6 +14,8 @@ import { calculateFinishing } from "./finishingConfig.js";
 import { calculateFirefighting } from "./firefightingCalc.js";
 import { calculatePlumbing } from "./plumbingCalc.js";
 import { calculateElectricity } from "./electricityCalc.js";
+import { estimateFloorsByArea, estimateRooms } from "./roomEstimator.js";
+import { formatProjectData } from "./formatter.js";
 
 // Helper function to recursively format all numbers to 2 decimal places
 const roundObjectValues = (obj, decimals = 2) => {
@@ -60,12 +62,15 @@ export const boqGenerator = (grade, volume, elementType = "slab") => {
 
 export const generateProjectEstimate = (projectData) => {
   const {
+    settings = { unitSystem: "metric", currency: "INR" }, // NEW: Extract settings with fallback
     totalArea,
     concreteGrade,
     slabVolume = 0,
     wallVolume = 0,
     columnVolume = 0,
     beamVolume = 0,
+    floorsInput,
+    detailedRoomsInput,
     foundationInput,
     septicUserCount,
     staircaseInput,
@@ -79,12 +84,38 @@ export const generateProjectEstimate = (projectData) => {
     electricityInput,
   } = projectData;
 
+  let floorCalculations = null;
+  let detailedRoomCalculations = null;
+  let computedTotalArea = totalArea;
+  let computedSlabVolume = slabVolume;
+  let computedWallVolume = wallVolume;
+
+  // Handle Macro Area Calculations
+  if (floorsInput && floorsInput.length > 0) {
+    floorCalculations = estimateFloorsByArea(floorsInput);
+    computedTotalArea = floorCalculations.totals.totalArea;
+    computedSlabVolume = floorCalculations.totals.slabVolume;
+    computedWallVolume = floorCalculations.totals.brickVolume;
+  }
+
+  // Handle Detailed Room Calculations (Overrides macro walls/plaster if active)
+  if (detailedRoomsInput && detailedRoomsInput.length > 0) {
+    detailedRoomCalculations = estimateRooms(detailedRoomsInput);
+    computedWallVolume = detailedRoomCalculations.totals.brickVolume;
+  }
+
   const breakdown = {
-    structuralLayout: totalArea
-      ? boqGenerator(null, totalArea, "structure")
+    floorsBreakdown: floorCalculations,
+    detailedRoomsBreakdown: detailedRoomCalculations,
+    structuralLayout: computedTotalArea
+      ? boqGenerator(null, computedTotalArea, "structure")
       : null,
-    slabs: slabVolume ? boqGenerator(concreteGrade, slabVolume, "slab") : null,
-    walls: wallVolume ? boqGenerator(null, wallVolume, "wall") : null,
+    slabs: computedSlabVolume
+      ? boqGenerator(concreteGrade, computedSlabVolume, "slab")
+      : null,
+    walls: computedWallVolume
+      ? boqGenerator(null, computedWallVolume, "wall")
+      : null,
     columns: columnVolume
       ? boqGenerator(concreteGrade, columnVolume, "column")
       : null,
@@ -92,41 +123,41 @@ export const generateProjectEstimate = (projectData) => {
     earthwork: foundationInput ? calculateEarthwork(foundationInput) : null,
     septicTank: septicUserCount ? calculateSepticTank(septicUserCount) : null,
     staircase: staircaseInput ? calculateStaircase(staircaseInput) : null,
-
- 
-    // checking for the input object, If it is null, it skips calculation entirely.
-
     rainwaterHarvesting: rwhInput
-      ? calculateRainwaterHarvesting({ ...rwhInput, totalArea })
+      ? calculateRainwaterHarvesting({
+          ...rwhInput,
+          totalArea: computedTotalArea,
+        })
       : null,
-
     solarRooftop: solarInput
       ? calculateSolarRooftop({
           ...solarInput,
-          roofAreaSqM: totalArea ? totalArea * 0.4 : 0,
+          roofAreaSqM: computedTotalArea ? computedTotalArea * 0.4 : 0,
         })
       : null,
-
     liftSystem: liftInput ? calculateLift(liftInput) : null,
-
     pumpSystem: pumpInput ? calculatePumpSystem(pumpInput, projectData) : null,
-
     finishingDetails: finishingInput
-      ? calculateFinishing(finishingInput, projectData)
+      ? calculateFinishing(
+          {
+            ...finishingInput,
+            totalPlasterArea:
+              detailedRoomCalculations?.totals?.plasterArea ||
+              floorCalculations?.totals?.plasterArea,
+          },
+          projectData,
+        )
       : null,
-
     firefightingSystem: firefightingInput
       ? calculateFirefighting({
-          totalAreaSqM: totalArea,
+          totalAreaSqM: computedTotalArea,
           ...firefightingInput,
         })
       : null,
-
     plumbingSystem: plumbingInput ? calculatePlumbing(plumbingInput) : null,
-
     electricalSystem: electricityInput
       ? calculateElectricity({
-          totalAreaSqM: totalArea,
+          totalAreaSqM: computedTotalArea,
           ...electricityInput,
         })
       : null,
@@ -257,9 +288,17 @@ export const generateProjectEstimate = (projectData) => {
     totalCost: calculatedTotalCost,
   };
 
-  return roundObjectValues({
+  //  Get the cleanly rounded base calculations 
+  const rawCalculatedResult = roundObjectValues({
     breakdown,
     grandTotals,
     totalCosts,
   });
+
+  //  Pass it through the formatter to apply user preferences before responding
+  return formatProjectData(
+    rawCalculatedResult,
+    settings.unitSystem,
+    settings.currency
+  );
 };

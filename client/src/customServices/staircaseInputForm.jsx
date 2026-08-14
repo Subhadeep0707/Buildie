@@ -5,13 +5,23 @@ import {
   resetStaircaseInputs,
   toggleStaircaseIncluded,
 } from "../store/slices/staircaseSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const StaircaseInputForm = () => {
   const dispatch = useDispatch();
   const staircaseData = useSelector((state) => state.staircase) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateStaircaseInputs({
         [name]: value === "" ? "" : Number(value),
@@ -43,7 +53,7 @@ const StaircaseInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetStaircaseInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -56,21 +66,24 @@ const StaircaseInputForm = () => {
           </label>
           <input
             type="number"
+            min="1"
+            onKeyDown={blockInvalidChars}
             name="numberOfFloors"
             value={staircaseData.numberOfFloors ?? 1}
             onChange={handleChange}
             disabled={!staircaseData.isIncluded}
-            min="1"
             className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
         <div>
           <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-            Floor Height (m)
+            Floor Height ({units.length})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="floorHeightM"
             value={staircaseData.floorHeightM ?? 3.0}
             onChange={handleChange}
@@ -82,10 +95,12 @@ const StaircaseInputForm = () => {
 
         <div>
           <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-            Flight Width (m)
+            Flight Width ({units.length})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="flightWidthM"
             value={staircaseData.flightWidthM ?? 1.2}
             onChange={handleChange}
@@ -97,10 +112,12 @@ const StaircaseInputForm = () => {
 
         <div>
           <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-            Flight Length (m)
+            Flight Length ({units.length})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="flightLengthM"
             value={staircaseData.flightLengthM ?? 4.0}
             onChange={handleChange}

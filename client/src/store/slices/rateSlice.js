@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Fetch materials dynamically from your backend API based on city
+// Fetch materials dynamically from backend API based on city
 export const fetchMaterialRates = createAsyncThunk(
   "rates/fetchMaterialRates",
   async (city = "Kolkata", thunkAPI) => {
@@ -27,6 +27,34 @@ export const verifyLiveSourceUrl = createAsyncThunk(
         `http://localhost:5000/api/materials/verify-source?city=${city}`,
       );
       return response.data.redirectUrl;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message,
+      );
+    }
+  },
+);
+
+// NEW: Save custom user-specific rates
+export const saveCustomRates = createAsyncThunk(
+  "rates/saveCustomRates",
+  async (customRates, thunkAPI) => {
+    try {
+      // Get the auth token from Redux state
+      const state = thunkAPI.getState();
+      const token = state.auth?.user?.token;
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.post(
+        "http://localhost:5000/api/materials/custom",
+        { materials: customRates },
+        config,
+      );
+      return response.data.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || error.message,
@@ -71,6 +99,18 @@ const rateSlice = createSlice({
       })
       .addCase(verifyLiveSourceUrl.fulfilled, (state, action) => {
         state.liveVerificationUrl = action.payload;
+      })
+      // Handle saving custom rates
+      .addCase(saveCustomRates.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveCustomRates.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(saveCustomRates.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

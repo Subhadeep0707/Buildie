@@ -9,9 +9,18 @@ const ElectricityInputForm = () => {
   const dispatch = useDispatch();
   const electricity = useSelector((state) => state.electricity);
 
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    dispatch(updateElectricityInputs({ [name]: Number(value) || 0 }));
+    if (value !== "" && Number(value) < 0) return;
+    dispatch(
+      updateElectricityInputs({ [name]: value === "" ? "" : Number(value) }),
+    );
   };
 
   const handleToggle = (e) => {
@@ -45,6 +54,7 @@ const ElectricityInputForm = () => {
             type="number"
             name="bedrooms"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={electricity.bedrooms === 0 ? "" : electricity.bedrooms}
             onChange={handleChange}
             placeholder="e.g. 3"
@@ -60,6 +70,7 @@ const ElectricityInputForm = () => {
             type="number"
             name="livingRooms"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={electricity.livingRooms === 0 ? "" : electricity.livingRooms}
             onChange={handleChange}
             placeholder="e.g. 1"
@@ -75,6 +86,7 @@ const ElectricityInputForm = () => {
             type="number"
             name="kitchens"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={electricity.kitchens === 0 ? "" : electricity.kitchens}
             onChange={handleChange}
             placeholder="e.g. 1"
@@ -90,6 +102,7 @@ const ElectricityInputForm = () => {
             type="number"
             name="bathrooms"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={electricity.bathrooms === 0 ? "" : electricity.bathrooms}
             onChange={handleChange}
             placeholder="e.g. 2"

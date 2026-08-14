@@ -4,12 +4,23 @@ import {
   updateStructuralInputs,
   resetStructuralInputs,
 } from "../store/slices/structuralSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const StructuralInputForm = () => {
   const dispatch = useDispatch();
   const structuralData = useSelector((state) => state.structural) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateStructuralInputs({
         [name]: value === "" ? "" : Number(value),
@@ -26,7 +37,7 @@ const StructuralInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetStructuralInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -40,10 +51,12 @@ const StructuralInputForm = () => {
           </h4>
           <div>
             <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-              Height per Floor (m)
+              Height per Floor ({units.length})
             </label>
             <input
               type="number"
+              min="0"
+              onKeyDown={blockInvalidChars}
               name="columnHeightM"
               value={structuralData.columnHeightM ?? 3.0}
               onChange={handleChange}
@@ -54,10 +67,12 @@ const StructuralInputForm = () => {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Width (m)
+                Width ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="columnWidthM"
                 value={structuralData.columnWidthM ?? 0.3}
                 onChange={handleChange}
@@ -67,10 +82,12 @@ const StructuralInputForm = () => {
             </div>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Depth (m)
+                Depth ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="columnDepthM"
                 value={structuralData.columnDepthM ?? 0.3}
                 onChange={handleChange}
@@ -88,10 +105,12 @@ const StructuralInputForm = () => {
           </h4>
           <div>
             <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-              Width (m)
+              Width ({units.length})
             </label>
             <input
               type="number"
+              min="0"
+              onKeyDown={blockInvalidChars}
               name="beamWidthM"
               value={structuralData.beamWidthM ?? 0.23}
               onChange={handleChange}
@@ -101,10 +120,12 @@ const StructuralInputForm = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-              Depth (m)
+              Depth ({units.length})
             </label>
             <input
               type="number"
+              min="0"
+              onKeyDown={blockInvalidChars}
               name="beamDepthM"
               value={structuralData.beamDepthM ?? 0.375}
               onChange={handleChange}

@@ -4,12 +4,23 @@ import {
   updateEarthworkInputs,
   resetEarthworkInputs,
 } from "../store/slices/earthworkSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const EarthworkInputForm = () => {
   const dispatch = useDispatch();
   const earthworkData = useSelector((state) => state.earthwork) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateEarthworkInputs({
         [name]: name === "type" ? value : value === "" ? "" : Number(value),
@@ -26,7 +37,7 @@ const EarthworkInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetEarthworkInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -57,19 +68,22 @@ const EarthworkInputForm = () => {
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="numberOfFootings"
                 value={earthworkData.numberOfFootings ?? 1}
                 onChange={handleChange}
-                min="1"
                 className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Custom Depth (m)
+                Custom Depth ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="customDepth"
                 value={earthworkData.customDepth ?? 1.5}
                 onChange={handleChange}
@@ -79,10 +93,12 @@ const EarthworkInputForm = () => {
             </div>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Footing Length (m)
+                Footing Length ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="footingLength"
                 value={earthworkData.footingLength ?? 1.5}
                 onChange={handleChange}
@@ -92,10 +108,12 @@ const EarthworkInputForm = () => {
             </div>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Footing Width (m)
+                Footing Width ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="footingWidth"
                 value={earthworkData.footingWidth ?? 1.5}
                 onChange={handleChange}
@@ -108,10 +126,12 @@ const EarthworkInputForm = () => {
           <>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Strip Length (m)
+                Strip Length ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="stripLengthMeters"
                 value={earthworkData.stripLengthMeters ?? 10}
                 onChange={handleChange}
@@ -121,10 +141,12 @@ const EarthworkInputForm = () => {
             </div>
             <div>
               <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-                Custom Depth (m)
+                Custom Depth ({units.length})
               </label>
               <input
                 type="number"
+                min="0"
+                onKeyDown={blockInvalidChars}
                 name="customDepth"
                 value={earthworkData.customDepth ?? 1.5}
                 onChange={handleChange}

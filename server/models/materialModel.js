@@ -30,6 +30,12 @@ const materialSchema = new mongoose.Schema(
     minPrice: { type: Number, required: true }, // Dealer rate lower bound
     maxPrice: { type: Number, required: true }, // Retail rate upper bound
     avgPrice: { type: Number, required: true }, // Median benchmark price
+    //for User Specific rates request and saving Records 
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     lastUpdated: { type: Date, default: Date.now },
   },
   { timestamps: true },

@@ -4,14 +4,25 @@ import {
   updatePlumbingInputs,
   togglePlumbingIncluded,
 } from "../store/slices/plumbingSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const PlumbingInputForm = () => {
   const dispatch = useDispatch();
   const plumbing = useSelector((state) => state.plumbing);
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    dispatch(updatePlumbingInputs({ [name]: Number(value) || 0 }));
+    if (value !== "" && Number(value) < 0) return;
+    dispatch(
+      updatePlumbingInputs({ [name]: value === "" ? "" : Number(value) }),
+    );
   };
 
   const handleToggle = (e) => {
@@ -20,10 +31,9 @@ const PlumbingInputForm = () => {
 
   return (
     <div className="bg-white dark:bg-[#1a1d27] p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-      {/* Header & Simple Checkbox */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold dark:text-white">
-          Plumbing Estimation (IS 1172)
+          Plumbing Estimation (IS 1172) - Unit: {units.length}
         </h3>
         <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
           <input
@@ -36,7 +46,6 @@ const PlumbingInputForm = () => {
         </label>
       </div>
 
-      {/* Input Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -46,6 +55,7 @@ const PlumbingInputForm = () => {
             type="number"
             name="bathrooms"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={plumbing.bathrooms === 0 ? "" : plumbing.bathrooms}
             onChange={handleChange}
             placeholder="e.g. 2"
@@ -61,6 +71,7 @@ const PlumbingInputForm = () => {
             type="number"
             name="kitchens"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={plumbing.kitchens === 0 ? "" : plumbing.kitchens}
             onChange={handleChange}
             placeholder="e.g. 1"
@@ -76,6 +87,7 @@ const PlumbingInputForm = () => {
             type="number"
             name="balconies"
             min="0"
+            onKeyDown={blockInvalidChars}
             value={plumbing.balconies === 0 ? "" : plumbing.balconies}
             onChange={handleChange}
             placeholder="e.g. 1"

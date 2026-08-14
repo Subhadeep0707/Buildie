@@ -21,19 +21,24 @@ const createEstimate = (req, res) => {
       wallVolume,
       columnVolume,
       beamVolume,
+      floorsInput,
+      detailedRoomsInput, //  Destructure detailed rooms
     } = req.body;
 
+    // Updated validation to allow either macro floors or detailed rooms as valid entry parameters
     if (
       !totalArea &&
       !slabVolume &&
       !wallVolume &&
       !columnVolume &&
-      !beamVolume
+      !beamVolume &&
+      (!floorsInput || floorsInput.length === 0) &&
+      (!detailedRoomsInput || detailedRoomsInput.length === 0)
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Please provide at least one project parameter (e.g., totalArea, slabVolume) to calculate.",
+          "Please provide at least one project parameter (e.g., totalArea, floorsInput, detailedRoomsInput) to calculate.",
       });
     }
 
@@ -47,7 +52,6 @@ const createEstimate = (req, res) => {
     }
 
     const cleanGrandTotals = roundObjectValues(estimateData.grandTotals);
-
     res.json({
       success: true,
       message: "Project estimate generated successfully",

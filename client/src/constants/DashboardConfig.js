@@ -13,7 +13,8 @@ export const DASHBOARD_SECTIONS = [
       { id: "structural", label: "Structural Details" },
       { id: "earthwork", label: "Earthwork" },
       { id: "openings", label: "Rooms & Openings" },
-      { id: "finishing", label: "Finishing" }, 
+      { id: "detailedRooms", label: "Detailed Rooms Design" },
+      { id: "finishing", label: "Finishing" },
     ],
   },
   {
@@ -21,7 +22,7 @@ export const DASHBOARD_SECTIONS = [
     items: [
       { id: "plumbing", label: "Plumbing" },
       { id: "electricity", label: "Electricity" },
-      { id: "stair", label: "Staircase" }, 
+      { id: "stair", label: "Staircase" },
       { id: "septic", label: "Septic Tank" },
       { id: "rwh", label: "Rain Water Harvesting" },
       { id: "solar", label: "Solar Rooftop" },

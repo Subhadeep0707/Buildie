@@ -4,23 +4,34 @@ import {
   updateFirefightingInputs,
   toggleFirefightingIncluded,
 } from "../store/slices/firefightingSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const FirefightingForm = () => {
   const dispatch = useDispatch();
-  // Grab both inputs and the new isIncluded flag
   const { inputs, isIncluded } = useSelector(
     (state) => state.firefighting || { inputs: {} },
   );
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (type === "number" && value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateFirefightingInputs({
         [name]:
           type === "checkbox"
             ? checked
             : type === "number"
-              ? parseFloat(value) || 0
+              ? value === ""
+                ? ""
+                : parseFloat(value) || 0
               : value,
       }),
     );
@@ -32,7 +43,6 @@ const FirefightingForm = () => {
 
   return (
     <div className="w-full">
-      {/* Header & Simple Checkbox */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🔥</span>
@@ -51,14 +61,15 @@ const FirefightingForm = () => {
         </label>
       </div>
 
-      {/* Inputs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Total Built-up Area (sq.m)
+            Total Built-up Area ({units.area})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="totalAreaSqM"
             value={inputs.totalAreaSqM || ""}
             onChange={handleChange}
@@ -74,6 +85,8 @@ const FirefightingForm = () => {
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="numberOfFloors"
             value={inputs.numberOfFloors || ""}
             onChange={handleChange}
@@ -85,10 +98,12 @@ const FirefightingForm = () => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Building Height (Meters)
+            Building Height ({units.length})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="buildingHeightMeters"
             value={inputs.buildingHeightMeters || ""}
             onChange={handleChange}

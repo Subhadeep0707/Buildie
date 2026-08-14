@@ -5,13 +5,23 @@ import {
   resetRwhInputs,
   toggleRwhIncluded,
 } from "../store/slices/rwhSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const RwhInputForm = () => {
   const dispatch = useDispatch();
   const rwhData = useSelector((state) => state.rwh) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (value !== "" && Number(value) < 0) return;
+
     dispatch(
       updateRwhInputs({
         [name]:
@@ -50,7 +60,7 @@ const RwhInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetRwhInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -59,10 +69,12 @@ const RwhInputForm = () => {
       <div className="space-y-3 text-sm">
         <div>
           <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
-            Roof Catchment Area (m²)
+            Roof Catchment Area ({units.area})
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="roofAreaSqM"
             placeholder="Inferred from total area if blank"
             value={rwhData.roofAreaSqM ?? ""}
@@ -78,6 +90,8 @@ const RwhInputForm = () => {
           </label>
           <input
             type="number"
+            min="0"
+            onKeyDown={blockInvalidChars}
             name="annualRainfallMm"
             value={rwhData.annualRainfallMm ?? 1000}
             onChange={handleChange}

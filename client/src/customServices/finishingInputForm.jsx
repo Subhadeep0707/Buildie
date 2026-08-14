@@ -4,14 +4,24 @@ import {
   updateFinishingInputs,
   resetFinishingInputs,
 } from "../store/slices/finishingSlice";
+import { useProjectSettings } from "../store/slices/useProjectSettings";
 
 const FinishingInputForm = () => {
   const dispatch = useDispatch();
   const finishingData = useSelector((state) => state.finishing) || {};
+  const { units } = useProjectSettings();
+
+  const blockInvalidChars = (e) => {
+    if (["-", "+", "e", "E"].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     const isNumberField = name.startsWith("customTile");
+
+    if (isNumberField && value !== "" && Number(value) < 0) return;
 
     dispatch(
       updateFinishingInputs({
@@ -29,7 +39,7 @@ const FinishingInputForm = () => {
         <button
           type="button"
           onClick={() => dispatch(resetFinishingInputs())}
-          className="text-xs text-red-500 hover:underline"
+          className="text-xs text-red-500 hover:underline cursor-pointer"
         >
           Reset
         </button>
@@ -87,10 +97,12 @@ const FinishingInputForm = () => {
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-              Tile Length (m)
+              Tile Length ({units.length})
             </label>
             <input
               type="number"
+              min="0"
+              onKeyDown={blockInvalidChars}
               name="customTileLength"
               value={finishingData.customTileLength ?? 0.6}
               onChange={handleChange}
@@ -100,10 +112,12 @@ const FinishingInputForm = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium text-gray-600 dark:text-gray-400">
-              Tile Width (m)
+              Tile Width ({units.length})
             </label>
             <input
               type="number"
+              min="0"
+              onKeyDown={blockInvalidChars}
               name="customTileWidth"
               value={finishingData.customTileWidth ?? 0.6}
               onChange={handleChange}
