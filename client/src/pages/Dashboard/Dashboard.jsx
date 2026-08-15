@@ -56,6 +56,7 @@ const Dashboard = () => {
   });
 
   const [projectName, setProjectName] = useState("");
+  const [clientName, setClientName] = useState("");
 
   const dispatch = useDispatch();
   const rates = useSelector((state) => state.rates.rates);
@@ -101,6 +102,7 @@ const Dashboard = () => {
 
     const newProject = {
       name: projectName || `Project ${Date.now()}`,
+      clientName: clientName || "Unknown Client",
       formData,
       floors,
       detailedRooms,
@@ -170,6 +172,7 @@ const Dashboard = () => {
     if (!activeProject) return;
     dispatch(setFloors(activeProject.floors));
     setProjectName(activeProject.name);
+    setClientName(activeProject.clientName || "");
     setResult(activeProject.result);
     setFormData(
       activeProject.formData || {
@@ -212,6 +215,13 @@ const Dashboard = () => {
                   placeholder="Project Name"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
+                  className="border p-2 rounded flex-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Client Name (Optional)"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
                   className="border p-2 rounded flex-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
                 <button

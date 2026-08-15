@@ -11,15 +11,14 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const materialrouter = express.Router();
 
-// GET endpoint for live source verification & redirection to InfraLens
+// Public endpoint for live verification redirection
 materialrouter.get("/verify-source", verifyLiveMarketSource);
 
-// POST endpoint for users to save their customized material rates (Protected)
+// Protected routes (req.user populated)
 materialrouter.post("/custom", protect, saveCustomRates);
-
-materialrouter.post("/", createMaterial);
-materialrouter.get("/", getMaterials);
-materialrouter.put("/:id", updateMaterial);
-materialrouter.delete("/:id", deleteMaterial);
+materialrouter.get("/", protect, getMaterials);
+materialrouter.post("/", protect, createMaterial);
+materialrouter.put("/:id", protect, updateMaterial);
+materialrouter.delete("/:id", protect, deleteMaterial);
 
 export default materialrouter;

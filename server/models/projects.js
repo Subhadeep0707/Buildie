@@ -1,16 +1,16 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'A project must have a name'],
+      required: [true, "A project must have a name"],
       trim: true,
     },
     clientName: {
       type: String,
-      required: [true, 'A client name is required'],
       trim: true,
+      default: "Unknown Client",
     },
     location: {
       type: String,
@@ -18,17 +18,29 @@ const projectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Planning', 'In Progress', 'Completed', 'On Hold'],
-      default: 'Planning',
+      enum: ["Planning", "In Progress", "Completed", "On Hold"],
+      default: "Planning",
     },
     totalArea: {
-      type: Number, 
-      // e.g., in sq. ft. or sq. meters - crucial for  later calculations
-    }
+      type: Number,
+    },
+
+    formData: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+    floors: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+    detailedRooms: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+    result: {
+      type: mongoose.Schema.Types.Mixed,
+    },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
-  }
+    timestamps: true, 
+  },
 );
 
-export default mongoose.model('Project', projectSchema);
+export default mongoose.model("Project", projectSchema);

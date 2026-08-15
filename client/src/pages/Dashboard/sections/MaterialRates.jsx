@@ -4,6 +4,7 @@ import {
   fetchMaterialRates,
   verifyLiveSourceUrl,
   saveCustomRates,
+  deleteMaterialRate,
 } from "../../../store/slices/rateSlice";
 
 const MaterialRates = () => {
@@ -21,21 +22,19 @@ const MaterialRates = () => {
   }, [dispatch, selectedCity]);
 
   useEffect(() => {
-    if (materials) {
+    if (Array.isArray(materials)) {
       setLocalRates(JSON.parse(JSON.stringify(materials)));
     }
   }, [materials]);
 
   const handleInputChange = (index, field, value) => {
     const updatedRates = [...localRates];
-    // Ensure numbers for prices, strings for text
     updatedRates[index][field] =
       field === "minPrice" || field === "maxPrice" ? Number(value) : value;
 
-    // Auto-calculate average dynamically
     if (field === "minPrice" || field === "maxPrice") {
-      const min = updatedRates[index].minPrice || 0;
-      const max = updatedRates[index].maxPrice || 0;
+      const min = Number(updatedRates[index].minPrice) || 0;
+      const max = Number(updatedRates[index].maxPrice) || 0;
       updatedRates[index].avgPrice = Math.round((min + max) / 2);
     }
 
@@ -48,21 +47,43 @@ const MaterialRates = () => {
       {
         name: "",
         brand: "",
-        category: "Other", // Default schema requirement
-        unit: "bag", // Default schema requirement
+        category: "Other",
+        unit: "bag",
         city: selectedCity,
         minPrice: 0,
         maxPrice: 0,
         avgPrice: 0,
-        isNewRow: true, // UI flag to allow editing Name and Brand
+        isNewRow: true,
       },
     ]);
   };
 
+  const handleDeleteRow = async (indexToDelete) => {
+    const itemToDelete = localRates[indexToDelete];
+
+    // If document already exists in MongoDB, execute hard delete
+    if (itemToDelete && itemToDelete._id) {
+      try {
+        await dispatch(deleteMaterialRate(itemToDelete._id)).unwrap();
+      } catch (err) {
+        console.error("Failed to delete material:", err);
+      }
+    }
+
+    // Remove from local array
+    setLocalRates(localRates.filter((_, index) => index !== indexToDelete));
+    dispatch(fetchMaterialRates(selectedCity));
+  };
+
   const handleSaveRates = async () => {
-    // Filter out completely empty rows before saving
-    const validRates = localRates.filter((rate) => rate.name.trim() !== "");
-    await dispatch(saveCustomRates(validRates));
+    const validRates = localRates
+      .filter((rate) => rate.name && rate.name.trim() !== "")
+      .map((rate) => ({
+        ...rate,
+        city: rate.city || selectedCity,
+      }));
+
+    await dispatch(saveCustomRates(validRates)).unwrap();
     setIsEditing(false);
     dispatch(fetchMaterialRates(selectedCity));
   };
@@ -101,26 +122,26 @@ const MaterialRates = () => {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer shadow"
             >
-               Edit Custom Rates
+              Edit Custom Rates
             </button>
           ) : (
             <>
               <button
                 onClick={() => {
                   setIsEditing(false);
-                  setLocalRates(materials); 
+                  setLocalRates(Array.isArray(materials) ? materials : []);
                 }}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveRates}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer shadow"
               >
-                 Save Rates
+                Save Rates
               </button>
             </>
           )}
@@ -129,14 +150,14 @@ const MaterialRates = () => {
             href={liveVerificationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition inline-flex items-center gap-1.5"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition inline-flex items-center gap-1.5 shadow"
           >
-             Verify Live Rates
+            Verify Live Rates
           </a>
         </div>
       </div>
 
-      {/*  Dynamic City Selection */}
+      {/* Dynamic City Selection */}
       <div className="flex flex-col">
         <label className={labelStyle}>Select or Type a City</label>
         <input
@@ -146,7 +167,7 @@ const MaterialRates = () => {
           onChange={(e) => setSelectedCity(e.target.value)}
           className={inputStyle}
           disabled={isEditing}
-          placeholder="e.g. Mumbai, Paschim Medinipur..."
+          placeholder="e.g. Kolkata, Mumbai, Bangalore..."
         />
         <datalist id="city-options">
           <option value="Kolkata" />
@@ -181,6 +202,11 @@ const MaterialRates = () => {
                 <th className="px-4 py-2.5 text-right font-medium text-gray-500">
                   Avg Benchmark
                 </th>
+                {isEditing && (
+                  <th className="px-3 py-2.5 text-center font-medium text-gray-500">
+                    Action
+                  </th>
+                )}
               </tr>
             </thead>
 
@@ -193,11 +219,11 @@ const MaterialRates = () => {
                     >
                       {/* Material Name */}
                       <td className="px-4 py-3 font-medium">
-                        {isEditing && item.isNewRow ? (
+                        {isEditing ? (
                           <input
                             type="text"
-                            placeholder="e.g. OPC 53 Grade Cement"
-                            value={item.name}
+                            placeholder="e.g. Cement"
+                            value={item.name || ""}
                             onChange={(e) =>
                               handleInputChange(index, "name", e.target.value)
                             }
@@ -207,7 +233,7 @@ const MaterialRates = () => {
                           <div className="flex items-center gap-2">
                             {item.name}
                             {item.userId && (
-                              <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
                                 Custom
                               </span>
                             )}
@@ -217,27 +243,27 @@ const MaterialRates = () => {
 
                       {/* Brand */}
                       <td className="px-4 py-3 text-gray-500">
-                        {isEditing && item.isNewRow ? (
+                        {isEditing ? (
                           <input
                             type="text"
                             placeholder="e.g. UltraTech"
-                            value={item.brand}
+                            value={item.brand || ""}
                             onChange={(e) =>
                               handleInputChange(index, "brand", e.target.value)
                             }
                             className={textInputStyle}
                           />
                         ) : (
-                          item.brand
+                          item.brand || "-"
                         )}
                       </td>
 
-                      {/* Editable Min Price */}
+                      {/* Min Price */}
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
                           <input
                             type="number"
-                            value={item.minPrice}
+                            value={item.minPrice ?? 0}
                             onChange={(e) =>
                               handleInputChange(
                                 index,
@@ -248,16 +274,16 @@ const MaterialRates = () => {
                             className={numberInputStyle}
                           />
                         ) : (
-                          `₹${item.minPrice}`
+                          `₹${item.minPrice ?? 0}`
                         )}
                       </td>
 
-                      {/* Editable Max Price */}
+                      {/* Max Price */}
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
                           <input
                             type="number"
-                            value={item.maxPrice}
+                            value={item.maxPrice ?? 0}
                             onChange={(e) =>
                               handleInputChange(
                                 index,
@@ -268,17 +294,17 @@ const MaterialRates = () => {
                             className={numberInputStyle}
                           />
                         ) : (
-                          `₹${item.maxPrice}`
+                          `₹${item.maxPrice ?? 0}`
                         )}
                       </td>
 
                       {/* Unit Selection & Avg Price */}
                       <td className="px-4 py-3 text-right font-semibold text-emerald-600">
                         <div className="flex items-center justify-end gap-1.5">
-                          ₹{item.avgPrice} /
-                          {isEditing && item.isNewRow ? (
+                          ₹{item.avgPrice ?? 0} /
+                          {isEditing ? (
                             <select
-                              value={item.unit}
+                              value={item.unit || "bag"}
                               onChange={(e) =>
                                 handleInputChange(index, "unit", e.target.value)
                               }
@@ -292,10 +318,24 @@ const MaterialRates = () => {
                               <option value="nos">nos</option>
                             </select>
                           ) : (
-                            item.unit
+                            item.unit || "unit"
                           )}
                         </div>
                       </td>
+
+                      {/* Row Delete Action */}
+                      {isEditing && (
+                        <td className="px-3 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRow(index)}
+                            className="text-red-500 hover:text-red-700 transition cursor-pointer p-1 font-bold"
+                            title="Remove Material"
+                          >
+                            ✕
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 : !isEditing && (
@@ -312,14 +352,13 @@ const MaterialRates = () => {
             </tbody>
           </table>
 
-          {/* NEW: Add Row Button visible only during Edit Mode */}
           {isEditing && (
             <div className="p-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex justify-center">
               <button
                 onClick={handleAddRow}
-                className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline inline-flex items-center gap-1 transition"
+                className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline inline-flex items-center gap-1 transition cursor-pointer"
               >
-                Add New Material to {selectedCity}
+                + Add New Material to {selectedCity}
               </button>
             </div>
           )}
