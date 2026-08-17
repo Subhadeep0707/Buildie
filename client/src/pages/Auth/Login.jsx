@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../store/slices/authSlice";
+// 1. Import registerUser alongside loginUser
+import { loginUser, registerUser } from "../../store/slices/authSlice";
 import { Navigate } from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch();
   const { token, loading, error, user } = useSelector((state) => state.auth);
+  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
   });
@@ -20,23 +23,39 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(loginUser(formData));
+    if (isLogin) {
+      dispatch(
+        loginUser({ email: formData.email, password: formData.password }),
+      );
+    } else {
+      dispatch(registerUser(formData));
+    }
   };
 
-  // Redirect after login
+  // Toggle function to clear errors and form data when switching modes
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setFormData({ name: "", email: "", password: "" });
+  };
+
+  // Redirect after successful login or registration
   if (token) {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-6">
+    <div className="w-full flex-1 min-h-[calc(100vh-80px)] flex items-center justify-center bg-transparent p-6">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6">
-        {/* Heading */}
+        {/* Heading dynamically changes */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold dark:text-white">Buildie Login</h1>
+          <h1 className="text-3xl font-bold dark:text-white">
+            {isLogin ? "Buildie Login" : "Create Account"}
+          </h1>
 
           <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Login to manage your projects
+            {isLogin
+              ? "Login to manage your projects"
+              : "Sign up to start estimating"}
           </p>
         </div>
 
@@ -49,33 +68,36 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username */}
+          {/* Name Field  */}
+          {!isLogin && (
+            <div>
+              <label className="block mb-2 text-sm font-medium dark:text-white">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your name"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required={!isLogin}
+              />
+            </div>
+          )}
+
+          {/* Email */}
           <div>
             <label className="block mb-2 text-sm font-medium dark:text-white">
-             Email
+              Email
             </label>
-
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter email"
-              className="
-                w-full
-                px-4
-                py-3
-                rounded-xl
-                border
-                border-gray-300
-                dark:border-gray-700
-                bg-white
-                dark:bg-gray-900
-                dark:text-white
-                focus:outline-none
-                focus:ring-2
-                focus:ring-blue-500
-              "
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -85,50 +107,44 @@ const Login = () => {
             <label className="block mb-2 text-sm font-medium dark:text-white">
               Password
             </label>
-
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter password"
-              className="
-                w-full
-                px-4
-                py-3
-                rounded-xl
-                border
-                border-gray-300
-                dark:border-gray-700
-                bg-white
-                dark:bg-gray-900
-                dark:text-white
-                focus:outline-none
-                focus:ring-2
-                focus:ring-blue-500
-              "
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
-          {/* Button */}
+          {/* Button dynamically changes text */}
           <button
             type="submit"
             disabled={loading}
-            className="
-              w-full
-              bg-blue-600
-              hover:bg-blue-700
-              text-white
-              py-3
-              rounded-xl
-              font-semibold
-              transition
-            "
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading
+              ? isLogin
+                ? "Logging in..."
+                : "Creating account..."
+              : isLogin
+                ? "Login"
+                : "Sign Up"}
           </button>
         </form>
+
+        {/*  The Toggle Link at the bottom */}
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button
+            type="button"
+            onClick={toggleMode}
+            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline bg-transparent border-none cursor-pointer p-0"
+          >
+            {isLogin ? "Register here" : "Login here"}
+          </button>
+        </div>
 
         {/* User */}
         {user && (
