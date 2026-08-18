@@ -11,19 +11,23 @@ import blogRouter from "./routes/blogRoutes.js";
 
 const app = express();
 
-// CORS middleware BEFORE  routes
+// Allowed Origins for Local Development
+const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+
+// CORS Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // The URL of  React frontend
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed request types
-    credentials: true, // Allows cookies/authorization headers if needed later
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
 
-//Built-in Express middleware
+// Built-in Express middleware
 app.use(express.json());
 
-//Custom middleware and Routes
+// Custom middleware and Routes
 app.use(logger);
 app.use("/api/projects", projectRouter);
 app.use("/api/health", router);
@@ -31,10 +35,10 @@ app.use("/api/estimates", estimateRouter);
 app.use("/api/materials", materialrouter);
 app.use("/api/blogs", blogRouter);
 
-//Authentication Middleware
+// Authentication Middleware
 app.use("/api/auth", authRouter);
 
-//Global Errorhandler middleware
+// Global Error Handler Middleware
 app.use(errorHandler);
 
 export default app;
