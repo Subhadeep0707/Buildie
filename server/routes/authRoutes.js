@@ -17,7 +17,7 @@ authRouter.post("/login", loginUser);
 authRouter.put("/profile", protect, updateUserProfile);
 
 //Admin Routes
-// :id is a dynamic parameter that holds the user's specific database ID
+//:id is a dynamic parameter that holds the user's specific database ID
 authRouter.put("/:id", protect, admin, updateUser);
 authRouter.delete("/:id", protect, admin, deleteUser);
 

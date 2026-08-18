@@ -27,11 +27,11 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["user", "admin"], // This restricts the role to only these two words
-      default: "user", // By default, everyone who registers is a standard user
+      default: "user",
     },
   },
   {
-    timestamps: true, // Automatically manages createdAt and updatedAt properties
+    timestamps: true,
   },
 );
 

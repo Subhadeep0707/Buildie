@@ -19,7 +19,7 @@ export const registerUser = async (req, res) => {
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
-    //NOTE: When this runs, your userModel.pre('save') hook automatically fires and hashes the password!
+    // When this runs, this userModel.pre('save') hook automatically fires and hashes the password!
     const user = await User.create({
       name,
       email,
@@ -53,7 +53,7 @@ export const loginUser = async (req, res) => {
         _id: user.id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id), // Handing them their new JWT wristband
+        token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
@@ -78,7 +78,7 @@ export const updateUser = async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        role: updatedUser.role, //Return the role too
+        role: updatedUser.role, //Returns the role 
         // NO token generated here for the admin
       });
     } else {

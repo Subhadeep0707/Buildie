@@ -66,7 +66,6 @@ export const updateUser = createAsyncThunk(
   "auth/updateUser",
   async ({ id, userData }, thunkAPI) => {
     try {
-      // Dynamic ID parameter mapped to /:id
       const response = await API.put(`/api/auth/${id}`, userData);
       return response.data;
     } catch (error) {
@@ -81,7 +80,6 @@ export const deleteUser = createAsyncThunk(
   "auth/deleteUser",
   async (id, thunkAPI) => {
     try {
-      // Dynamic ID parameter mapped to /:id
       await API.delete(`/api/auth/${id}`);
       localStorage.removeItem("token");
       localStorage.removeItem("user");
