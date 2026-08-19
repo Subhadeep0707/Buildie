@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
   {
+    // Add this user reference!
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: {
       type: String,
       required: [true, "A project must have a name"],
@@ -24,7 +30,6 @@ const projectSchema = new mongoose.Schema(
     totalArea: {
       type: Number,
     },
-
     formData: {
       type: mongoose.Schema.Types.Mixed,
     },
@@ -39,7 +44,7 @@ const projectSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   },
 );
 
