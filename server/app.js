@@ -11,8 +11,12 @@ import blogRouter from "./routes/blogRoutes.js";
 
 const app = express();
 
-// Allowed Origins for Local Development
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+// Allowed Origins for Production and Local Development
+const allowedOrigins = [
+  "https://buildieapp.vercel.app", 
+  "http://localhost:5173", 
+  "http://127.0.0.1:5173"
+];
 
 // CORS Middleware
 app.use(
