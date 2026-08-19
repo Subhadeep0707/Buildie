@@ -29,7 +29,10 @@ import {
   updateFloor,
   setFloors,
 } from "../../store/slices/roomSlice";
-import { saveProjectAsync } from "../../store/slices/projectSlice";
+import {
+  saveProjectAsync,
+  setActiveProject,
+} from "../../store/slices/projectSlice";
 import { useProjectSettings } from "../../store/slices/useProjectSettings";
 
 const Dashboard = () => {
@@ -168,6 +171,26 @@ const Dashboard = () => {
       });
   };
 
+  //  Clear the state on mount, but handle activeProject loading
+  useEffect(() => {
+    // If there is NO activeProject when the component mounts, ensure the UI is wiped clean
+    if (!activeProject) {
+      setResult(null);
+      setProjectName("");
+      setClientName("");
+      setFormData({ grade: "M20" });
+    }
+  }, [activeProject]);
+
+  //  A dedicated cleanup effect that runs when unmounting/leaving the dashboard
+  useEffect(() => {
+    return () => {
+      // When navigating away from the dashboard, clear the active project memory
+      dispatch(setActiveProject(null));
+    };
+  }, [dispatch]);
+
+  // Handle loading an active project from the saved list
   useEffect(() => {
     if (!activeProject) return;
     dispatch(setFloors(activeProject.floors));

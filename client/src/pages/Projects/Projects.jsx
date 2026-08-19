@@ -49,11 +49,11 @@ const Projects = () => {
 
       {/*  Project Cards Container */}
       <div className="overflow-y-auto pr-2 pb-10 flex-1 custom-scrollbar">
-        <div className="grid gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project, index) => (
             <div
-              key={project._id || index} // Safely fallback to index if old projects miss _id
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow flex flex-col md:flex-row justify-between gap-4"
+              key={project._id || index}
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow flex flex-col justify-between gap-4 h-full"
             >
               {/* Project Info */}
               <div className="space-y-2">
@@ -72,7 +72,6 @@ const Projects = () => {
                   Floors: {project.floors?.length || 0}
                 </p>
 
-                {/*  Cost property from totalCost to grandTotal */}
                 <p className="text-sm dark:text-gray-300 font-medium">
                   Total Cost: ₹
                   {(
@@ -87,17 +86,17 @@ const Projects = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 items-start shrink-0">
+              <div className="flex gap-3 items-start shrink-0 mt-4">
                 <button
                   onClick={() => handleOpenProject(project)}
-                  className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-lg font-medium"
                 >
                   Open
                 </button>
 
                 <button
                   onClick={() => handleDelete(project._id)}
-                  className="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg font-medium"
+                  className="flex-1 bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg font-medium"
                 >
                   Delete
                 </button>

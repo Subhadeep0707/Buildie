@@ -19,27 +19,45 @@ const ProjectDetails = () => {
   );
 
   const reportRef = useRef();
-
   if (!project) {
     return <div className="p-6 dark:text-white">Project not found</div>;
   }
 
+  // Multi-page PDF Export Logic
   const exportPDF = async () => {
     const element = reportRef.current;
+
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
+      backgroundColor: "#1f2937", 
     });
+
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
+
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    // Loop to create additional pages if content overflows A4 height
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
     pdf.save(`${project.name}.pdf`);
   };
 
   return (
-
     <div className="h-full overflow-y-auto custom-scrollbar">
       {/* reportRef container stays intact for PDF generation */}
       <div ref={reportRef} className="p-6 space-y-6 min-h-max">

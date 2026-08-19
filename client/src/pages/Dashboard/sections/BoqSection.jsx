@@ -28,7 +28,7 @@ const BoqSection = ({ result }) => {
     );
   }
 
-  // Gracefully handle nested data from the new boqGenerator, or fallback to flat structure
+  //  handle nested data from the new boqGenerator, or fallback to flat structure
   const quantities = result.grandTotals || result;
   const costs = result.totalCosts || result;
 
@@ -41,7 +41,7 @@ const BoqSection = ({ result }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
       {/*  Quantities Column */}
-      <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 p-5 rounded-xl shadow space-y-4">
+      <div className="bg-green-50 dark:bg-gray-800 border border-green-300 dark:border-green-700 p-5 rounded-xl shadow space-y-4">
         <h2 className="text-lg font-bold dark:text-white border-b border-green-300 dark:border-green-700 pb-2">
           Material Quantities
         </h2>
@@ -231,7 +231,7 @@ const BoqSection = ({ result }) => {
             )}
         </div>
 
-        {/* Grand Total Footer */}
+        {/* Grand Total  */}
         <div className="pt-4 mt-auto border-t border-gray-200 dark:border-gray-700">
           <p className="flex justify-between items-center font-bold text-lg text-blue-700 dark:text-blue-400">
             <span>Grand Total:</span>
