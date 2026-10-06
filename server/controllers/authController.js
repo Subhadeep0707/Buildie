@@ -1,14 +1,16 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendEmail } from "../utils/engine/sendMail.js";
 
 //Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d", // Token lasts for 30 days
+    expiresIn: "30d",
   });
 };
 
-// Register a new user
+//Register a new user
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -63,6 +65,90 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// Forgot password
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Please provide your email" });
+    }
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Generate a random reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    // Store the hashed token in the database
+    user.resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    // Token will be valid for 15 minutes
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+    await user.save();
+    // Create reset-password link
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    await sendEmail({
+      to: user.email,
+      subject: "Buildie Password Reset",
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your Buildie password.</p>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p>This link will expire in 15 minutes.</p>
+        <p>If you did not request this, you can ignore this email.</p>
+      `,
+    });
+
+    res.json({
+      message: "Password reset email sent",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Reset password
+export const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ message: "Please provide a new password" });
+    }
+    // Hashing the token received from the reset URL
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+    // Finding user with matching token that has not expired
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select("+resetPasswordToken +resetPasswordExpire");
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token",
+      });
+    }
+    // Set the new password
+    user.password = password;
+    // Clearing the reset token so it cannot be reused
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+    res.json({
+      message: "Password reset successful",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //Update user profile (ADMIN)
 export const updateUser = async (req, res) => {
   try {
@@ -78,7 +164,7 @@ export const updateUser = async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        role: updatedUser.role, //Returns the role 
+        role: updatedUser.role, //Returns the role
         // NO token generated here for the admin
       });
     } else {

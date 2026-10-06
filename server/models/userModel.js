@@ -22,8 +22,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a password"],
       minlength: 6,
-      select: false, // Prevents password from being returned in standard queries
+      select: false,
     },
+
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"], // This restricts the role to only these two words

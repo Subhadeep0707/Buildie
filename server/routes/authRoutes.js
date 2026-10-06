@@ -3,6 +3,8 @@ import {
   loginUser,
   registerUser,
   deleteUser,
+  forgotPassword,
+  resetPassword,
   updateUser,
   updateUserProfile,
 } from "../controllers/authController.js";
@@ -12,6 +14,8 @@ const authRouter = express.Router();
 
 authRouter.post("/register", registerUser);
 authRouter.post("/login", loginUser);
+authRouter.post("/forgot-password", forgotPassword);
+authRouter.post("/reset-password/:token", resetPassword);
 
 //Customer Routes
 authRouter.put("/profile", protect, updateUserProfile);
