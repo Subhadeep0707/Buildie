@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, registerUser } from "../../store/slices/authSlice";
-import { Navigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch();
   const { token, loading, error, user } = useSelector((state) => state.auth);
+
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,19 +24,29 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (isLogin) {
       dispatch(
-        loginUser({ email: formData.email, password: formData.password }),
+        loginUser({
+          email: formData.email,
+          password: formData.password,
+        }),
       );
     } else {
       dispatch(registerUser(formData));
     }
   };
 
-  // Toggle function to clear errors and form data when switching modes
+  // Toggle between Login and Register
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setFormData({ name: "", email: "", password: "" });
+    setShowPassword(false);
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+    });
   };
 
   // Redirect after successful login or registration
@@ -46,7 +57,7 @@ const Login = () => {
   return (
     <div className="w-full flex-1 min-h-[calc(100vh-80px)] flex items-center justify-center bg-transparent p-6">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6">
-        {/* Heading dynamically changes */}
+        {/* Heading */}
         <div className="text-center">
           <h1 className="text-3xl font-bold dark:text-white">
             {isLogin ? "Buildie Login" : "Create Account"}
@@ -68,12 +79,13 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name Field  */}
+          {/* Name */}
           {!isLogin && (
             <div>
               <label className="block mb-2 text-sm font-medium dark:text-white">
                 Full Name
               </label>
+
               <input
                 type="text"
                 name="name"
@@ -91,6 +103,7 @@ const Login = () => {
             <label className="block mb-2 text-sm font-medium dark:text-white">
               Email
             </label>
+
             <input
               type="email"
               name="email"
@@ -107,27 +120,42 @@ const Login = () => {
             <label className="block mb-2 text-sm font-medium dark:text-white">
               Password
             </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter password"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
-          <div className="text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              Forgot Password?
-            </Link>
-          </div>
+          {/* Forgot Password */}
+          {isLogin && (
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+          )}
 
-          {/* Button dynamically changes text */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -143,9 +171,10 @@ const Login = () => {
           </button>
         </form>
 
-        {/*  The Toggle Link at the bottom */}
+        {/* Login / Register Toggle */}
         <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
+
           <button
             type="button"
             onClick={toggleMode}
